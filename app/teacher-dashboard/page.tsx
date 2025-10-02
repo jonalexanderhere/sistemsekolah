@@ -20,6 +20,7 @@ import {
   Award,
   TrendingUp
 } from 'lucide-react';
+import LogoutButton from '@/components/LogoutButton';
 
 interface User {
   id: string;

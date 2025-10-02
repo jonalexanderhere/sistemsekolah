@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Users, Search, Filter, Download, FileText, UserCheck, UserX } from 'lucide-react';
 import { exportUsersToExcel, exportUsersToPDF, UserData } from '@/lib/export';
+import LogoutButton from '@/components/LogoutButton';
 
 interface User {
   id: string;
@@ -37,6 +38,23 @@ export default function UsersPage() {
   
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    // Check for saved user on component mount
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        if (userData.role === 'guru' || userData.role === 'admin') {
+          setCurrentUser(userData);
+        }
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('user');
+      }
+    }
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
     if (currentUser) {
@@ -80,6 +98,7 @@ export default function UsersPage() {
         }
         
         setCurrentUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
         toast({
           title: "Login Berhasil",
           description: `Selamat datang, ${data.user.nama}!`
@@ -247,25 +266,46 @@ export default function UsersPage() {
     );
   }
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setLoginForm({ nisn: '', nip: '', identitas: '' });
+    localStorage.removeItem('user');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => router.push('/')}
+                size="sm"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Home
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold">Data Pengguna</h1>
+                <p className="text-sm text-gray-600">Kelola data siswa dan guru</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm font-medium">{currentUser?.nama}</p>
+                <p className="text-xs text-gray-600 capitalize">{currentUser?.role}</p>
+              </div>
+              <LogoutButton onLogout={handleLogout} variant="outline" size="sm" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <Button 
-              variant="ghost" 
-              onClick={() => router.push('/')}
-              className="mb-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Kembali
-            </Button>
-            
-            <h1 className="text-2xl font-bold mb-2">Data Pengguna</h1>
-            <p className="text-gray-600">
-              Kelola data siswa dan guru dalam sistem
-            </p>
-          </div>
 
           {/* Filters */}
           <Card className="mb-6">

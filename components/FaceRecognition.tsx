@@ -99,24 +99,50 @@ export default function FaceRecognition({
         throw new Error('Camera not supported');
       }
 
-      // Try different camera configurations
+      // Try different camera configurations with more robust fallbacks
       const configs = [
         {
           video: {
             width: { ideal: 640 },
             height: { ideal: 480 },
-            facingMode: 'user'
+            facingMode: 'user',
+            frameRate: { ideal: 30, max: 30 }
           }
         },
         {
           video: {
             width: { min: 320, ideal: 640, max: 1280 },
             height: { min: 240, ideal: 480, max: 720 },
+            facingMode: 'user',
+            frameRate: { ideal: 15, max: 30 }
+          }
+        },
+        {
+          video: {
+            width: 640,
+            height: 480,
             facingMode: 'user'
           }
         },
         {
-          video: true // Fallback to basic video
+          video: {
+            width: 320,
+            height: 240,
+            facingMode: 'user'
+          }
+        },
+        {
+          video: {
+            facingMode: 'user'
+          }
+        },
+        {
+          video: {
+            facingMode: 'environment' // Try back camera as fallback
+          }
+        },
+        {
+          video: true // Most basic fallback
         }
       ];
 
@@ -187,7 +213,7 @@ export default function FaceRecognition({
       } else if (error.name === 'NotFoundError') {
         errorMessage = "Kamera tidak ditemukan. Pastikan kamera terhubung.";
       } else if (error.name === 'NotReadableError') {
-        errorMessage = "Kamera sedang digunakan aplikasi lain. Tutup aplikasi lain dan coba lagi.";
+        errorMessage = "Kamera tidak dapat diakses. Coba:\n• Tutup aplikasi lain yang menggunakan kamera\n• Restart browser\n• Periksa driver kamera\n• Gunakan browser yang berbeda";
       } else if (error.name === 'OverconstrainedError') {
         errorMessage = "Kamera tidak mendukung konfigurasi yang diminta.";
       } else if (error.name === 'SecurityError') {

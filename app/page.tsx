@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { GraduationCap, Users, Calendar, Bell, Camera, BookOpen, Zap, Shield, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import LogoutButton from '@/components/LogoutButton';
 
 interface User {
   id: string;
@@ -33,8 +34,18 @@ export default function HomePage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  // Load announcements on mount
+  // Load user from localStorage and announcements on mount
   useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('user');
+      }
+    }
     loadAnnouncements();
   }, []);
 
@@ -76,6 +87,7 @@ export default function HomePage() {
 
       if (data.success) {
         setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
         toast({
           title: "Berhasil Login",
           description: `Selamat datang, ${data.user.nama}!`
@@ -101,6 +113,7 @@ export default function HomePage() {
   const handleLogout = () => {
     setUser(null);
     setLoginForm({ nisn: '', nip: '', identitas: '' });
+    localStorage.removeItem('user');
   };
 
   if (!user) {
@@ -345,9 +358,7 @@ export default function HomePage() {
                 <p className="font-semibold text-gray-900">{user.nama}</p>
                 <p className="text-sm text-gray-600 capitalize">{user.role}</p>
               </div>
-              <Button variant="outline" onClick={handleLogout} className="border-gray-200">
-                Logout
-              </Button>
+              <LogoutButton onLogout={handleLogout} variant="outline" className="border-gray-200" />
             </div>
           </div>
         </div>

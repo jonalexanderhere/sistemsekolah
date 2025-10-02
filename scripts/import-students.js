@@ -12,6 +12,21 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Available class options for all grade levels
+const availableClasses = [
+    // Grade X (10th)
+    'X IPA 1', 'X IPA 2', 'X IPS 1', 'X IPS 2', 'X TJKT 1', 'X TJKT 2', 'X TJKT 3',
+    // Grade XI (11th)  
+    'XI IPA 1', 'XI IPA 2', 'XI IPS 1', 'XI IPS 2', 'XI TJKT 1', 'XI TJKT 2', 'XI TJKT 3',
+    // Grade XII (12th)
+    'XII IPA 1', 'XII IPA 2', 'XII IPS 1', 'XII IPS 2', 'XII TJKT 1', 'XII TJKT 2', 'XII TJKT 3'
+];
+
+// Function to get random class assignment
+function getRandomClass() {
+    return availableClasses[Math.floor(Math.random() * availableClasses.length)];
+}
+
 // Teacher data from previous system
 const dataGuru = [
     { 
@@ -165,7 +180,7 @@ async function importStudents() {
                 nisn: nisn,
                 identitas: `${student.nama.toLowerCase().replace(/\s+/g, '.')}@sisfotjkt2.com`,
                 external_auth_id: `student-${nisn}`,
-                class_name: 'X IPA 1', // Default class, can be updated later
+                class_name: getRandomClass(), // Assign random class for diversity
                 is_active: true
             };
         });
@@ -257,7 +272,7 @@ async function importStudents() {
 
 async function assignStudentsToClass() {
     console.log('');
-    console.log('🏫 Assigning Students to Default Class...');
+    console.log('🏫 Assigning Students to Multiple Classes...');
     
     try {
         // Get or create default class
@@ -275,9 +290,8 @@ async function assignStudentsToClass() {
         // Get all imported students
         const { data: students, error: studentsError } = await supabase
             .from('users')
-            .select('id, nama, nisn')
-            .eq('role', 'siswa')
-            .eq('class_name', 'X IPA 1');
+            .select('id, nama, nisn, class_name')
+            .eq('role', 'siswa');
         
         if (studentsError || !students) {
             console.warn('⚠️  Could not retrieve students for class assignment');
