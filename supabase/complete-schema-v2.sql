@@ -581,33 +581,20 @@ CREATE TABLE notifications (
 -- Comprehensive system logs
 CREATE TABLE system_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    
-    -- User and Action
     user_id UUID REFERENCES users(id),
     action TEXT NOT NULL,
-    entity_type TEXT, -- table name or entity type
+    entity_type TEXT,
     entity_id UUID,
-    
-    -- Details
     description TEXT,
     old_values JSONB,
     new_values JSONB,
-    
-    -- Request Information
     ip_address INET,
     user_agent TEXT,
     request_id TEXT,
     session_id TEXT,
-    
-    -- Status
     status TEXT DEFAULT 'success' CHECK (status IN ('success', 'failed', 'warning')),
     error_message TEXT,
-    
-    -- Metadata
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    
-    -- Indexes for performance
-    -- Will be created separately
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================================================
