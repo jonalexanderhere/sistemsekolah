@@ -11,9 +11,14 @@
     "seed": "node scripts/seed.js",
     "test-system": "node scripts/test-system.js",
     "setup": "npm install && npm run download-models && npm run seed && npm run test-system",
+    "setup-env": "node scripts/setup-env.js",
+    "setup-database": "node scripts/setup-database.js",
+    "import-teachers": "node -e \"require('./scripts/import-students.js').importTeachers()\"",
+    "import-students": "node scripts/import-students.js",
+    "import-all-users": "node scripts/import-students.js",
+    "complete-setup": "node scripts/complete-setup.js",
     "full-setup": "node scripts/full-setup.js",
-    "github-setup": "node scripts/github-setup.js",
-    "complete-setup": "npm run full-setup && npm run github-setup"
+    "github-setup": "node scripts/github-setup.js"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
