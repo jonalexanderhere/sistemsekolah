@@ -313,11 +313,11 @@ export function generateAttendanceCertificate(
   doc.text('Diberikan kepada:', doc.internal.pageSize.width / 2, 90, { align: 'center' });
   
   doc.setFontSize(20);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text(userName, doc.internal.pageSize.width / 2, 110, { align: 'center' });
   
   doc.setFontSize(12);
-  doc.setFont(undefined, 'normal');
+  doc.setFont('helvetica', 'normal');
   doc.text(`${userRole.toUpperCase()}`, doc.internal.pageSize.width / 2, 125, { align: 'center' });
 
   // Attendance details
@@ -334,7 +334,7 @@ export function generateAttendanceCertificate(
 
   // Attendance rate
   doc.setFontSize(16);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text(
     `Tingkat Kehadiran: ${attendanceData.attendanceRate.toFixed(1)}%`,
     doc.internal.pageSize.width / 2,
@@ -344,7 +344,7 @@ export function generateAttendanceCertificate(
 
   // Date and signature
   doc.setFontSize(10);
-  doc.setFont(undefined, 'normal');
+  doc.setFont('helvetica', 'normal');
   doc.text(
     `Diterbitkan pada: ${new Date().toLocaleDateString('id-ID')}`,
     doc.internal.pageSize.width / 2,

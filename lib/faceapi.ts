@@ -84,8 +84,13 @@ export async function getFaceDescriptor(
     let faceDescriptor;
     
     if (detection) {
-      // Use existing detection
-      faceDescriptor = await faceapi.computeFaceDescriptor(input, detection);
+      // Use existing detection to compute descriptor
+      const result = await faceapi
+        .detectSingleFace(input, FACE_API_CONFIG.detectionOptions)
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+      
+      faceDescriptor = result?.descriptor;
     } else {
       // Detect and compute descriptor
       const result = await faceapi

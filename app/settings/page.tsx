@@ -135,7 +135,7 @@ export default function SettingsPage() {
       
       const method = settings?.id && settings.id !== 'default' ? 'PUT' : 'POST';
       const body = method === 'PUT' 
-        ? { ...formData, id: settings.id }
+        ? { ...formData, id: settings?.id }
         : { ...formData, created_by: user.id };
 
       const response = await fetch('/api/attendance/settings', {
