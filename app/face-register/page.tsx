@@ -20,7 +20,7 @@ interface User {
 
 export default function FaceRegisterPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [loginForm, setLoginForm] = useState({ nisn: '', identitas: '' });
+  const [loginForm, setLoginForm] = useState({ nisn: '', nip: '', identitas: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const { toast } = useToast();
@@ -29,10 +29,10 @@ export default function FaceRegisterPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!loginForm.nisn && !loginForm.identitas) {
+    if (!loginForm.nisn && !loginForm.nip && !loginForm.identitas) {
       toast({
         title: "Error",
-        description: "Masukkan NISN atau Identitas",
+        description: "Masukkan NISN/NIP atau Identitas",
         variant: "destructive"
       });
       return;

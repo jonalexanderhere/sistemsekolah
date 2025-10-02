@@ -27,7 +27,7 @@ interface CurrentUser {
 
 export default function UsersPage() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [loginForm, setLoginForm] = useState({ identitas: '' });
+  const [loginForm, setLoginForm] = useState({ nisn: '', nip: '', identitas: '' });
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,10 +51,10 @@ export default function UsersPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!loginForm.identitas) {
+    if (!loginForm.nisn && !loginForm.nip && !loginForm.identitas) {
       toast({
         title: "Error",
-        description: "Masukkan identitas guru",
+        description: "Masukkan NISN/NIP atau identitas guru",
         variant: "destructive"
       });
       return;

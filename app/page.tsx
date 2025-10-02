@@ -27,7 +27,7 @@ interface Announcement {
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
-  const [loginForm, setLoginForm] = useState({ nisn: '', identitas: '' });
+  const [loginForm, setLoginForm] = useState({ nisn: '', nip: '', identitas: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const { toast } = useToast();
@@ -54,10 +54,10 @@ export default function HomePage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!loginForm.nisn && !loginForm.identitas) {
+    if (!loginForm.nisn && !loginForm.nip && !loginForm.identitas) {
       toast({
         title: "Error",
-        description: "Masukkan NISN atau Identitas",
+        description: "Masukkan NISN/NIP atau Identitas",
         variant: "destructive"
       });
       return;
@@ -100,7 +100,7 @@ export default function HomePage() {
 
   const handleLogout = () => {
     setUser(null);
-    setLoginForm({ nisn: '', identitas: '' });
+    setLoginForm({ nisn: '', nip: '', identitas: '' });
   };
 
   if (!user) {
@@ -159,7 +159,7 @@ export default function HomePage() {
                 <CardHeader className="text-center pb-6">
                   <CardTitle className="text-2xl font-semibold">Login</CardTitle>
                   <CardDescription className="text-gray-600">
-                    Masukkan NISN (siswa) atau Identitas (guru) untuk masuk
+                    Masukkan NISN (siswa), NIP (guru), atau Identitas untuk masuk
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-8 pb-8">
@@ -172,7 +172,25 @@ export default function HomePage() {
                         type="text"
                         placeholder="Masukkan NISN"
                         value={loginForm.nisn}
-                        onChange={(e) => setLoginForm(prev => ({ ...prev, nisn: e.target.value }))}
+                        onChange={(e) => setLoginForm(prev => ({ ...prev, nisn: e.target.value, nip: '', identitas: '' }))}
+                        className="h-12"
+                      />
+                    </div>
+                    
+                    <div className="text-center">
+                      <span className="text-sm text-gray-500 bg-white px-4">atau</span>
+                      <div className="border-t border-gray-200 -mt-3"></div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        NIP (untuk guru)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Masukkan NIP"
+                        value={loginForm.nip}
+                        onChange={(e) => setLoginForm(prev => ({ ...prev, nip: e.target.value, nisn: '', identitas: '' }))}
                         className="h-12"
                       />
                     </div>
@@ -188,9 +206,9 @@ export default function HomePage() {
                       </label>
                       <Input
                         type="text"
-                        placeholder="Masukkan nomor identitas"
+                        placeholder="Masukkan email identitas"
                         value={loginForm.identitas}
-                        onChange={(e) => setLoginForm(prev => ({ ...prev, identitas: e.target.value }))}
+                        onChange={(e) => setLoginForm(prev => ({ ...prev, identitas: e.target.value, nisn: '', nip: '' }))}
                         className="h-12"
                       />
                     </div>

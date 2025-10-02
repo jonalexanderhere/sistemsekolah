@@ -5,20 +5,22 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { nisn, identitas } = await request.json();
+    const { nisn, nip, identitas } = await request.json();
 
-    if (!nisn && !identitas) {
+    if (!nisn && !nip && !identitas) {
       return NextResponse.json(
-        { error: 'NISN atau identitas harus diisi' },
+        { error: 'NISN/NIP atau identitas harus diisi' },
         { status: 400 }
       );
     }
 
-    // Find user by NISN or identitas
+    // Find user by NISN/NIP or identitas
     let query = supabaseAdmin.from('users').select('*');
     
-    if (nisn) {
-      query = query.eq('nisn', nisn);
+    if (nisn || nip) {
+      // For teachers, NIP is stored in nisn field
+      // For students, NISN is stored in nisn field
+      query = query.eq('nisn', nisn || nip);
     } else if (identitas) {
       query = query.eq('identitas', identitas);
     }

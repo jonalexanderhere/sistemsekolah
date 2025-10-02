@@ -26,7 +26,7 @@ interface User {
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [loginForm, setLoginForm] = useState({ nisn: '', identitas: '' });
+  const [loginForm, setLoginForm] = useState({ nisn: '', nip: '', identitas: '' });
   const [settings, setSettings] = useState<AttendanceSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -48,10 +48,10 @@ export default function SettingsPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!loginForm.nisn && !loginForm.identitas) {
+    if (!loginForm.nisn && !loginForm.nip && !loginForm.identitas) {
       toast({
         title: "Error",
-        description: "Masukkan NISN atau Identitas",
+        description: "Masukkan NISN/NIP atau Identitas",
         variant: "destructive"
       });
       return;
