@@ -2,9 +2,13 @@ import { createClient } from '@supabase/supabase-js'
 import { createClientComponentClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kfstxlcoegqanytvpbgp.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmc3R4bGNvZWdxYW55dHZwYmdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzNzgzMzYsImV4cCI6MjA3NDk1NDMzNn0.04Rsbu-9yqVB-nP3dfm2tCqtYJ5JrIMJFv7bTeLOln0'
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+  throw new Error('Missing Supabase environment variables')
+}
 
 // Client-side Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
@@ -46,9 +50,13 @@ export interface Attendance {
   id: string
   user_id: string
   tanggal: string
-  waktu: string
-  status: 'hadir' | 'terlambat' | 'tidak_hadir'
-  meta?: Record<string, any>
+  waktu_masuk?: string
+  waktu_keluar?: string
+  status: 'hadir' | 'terlambat' | 'tidak_hadir' | 'izin' | 'sakit' | 'alpha' | 'dispensasi'
+  method?: 'face_recognition' | 'manual' | 'card' | 'qr_code' | 'fingerprint'
+  confidence_score?: number
+  notes?: string
+  created_at: string
 }
 
 export interface Exam {

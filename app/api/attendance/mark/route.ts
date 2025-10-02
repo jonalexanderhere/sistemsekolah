@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Check if already marked attendance today
     const { data: existingAttendance, error: checkError } = await supabaseAdmin
       .from('attendance')
-      .select('id, status, waktu')
+      .select('id, status, waktu_masuk')
       .eq('user_id', userId)
       .eq('tanggal', today)
       .single();
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         attendance: {
           id: existingAttendance.id,
           status: existingAttendance.status,
-          waktu: existingAttendance.waktu
+          waktu_masuk: existingAttendance.waktu_masuk
         }
       });
     }
@@ -88,13 +88,11 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: userId,
         tanggal: today,
-        waktu: currentTime,
+        waktu_masuk: currentTime,
         status: finalStatus,
-        meta: {
-          ...meta,
-          method: 'face_recognition',
-          timestamp: currentTime
-        }
+        method: 'face_recognition',
+        confidence_score: meta.confidence || null,
+        notes: meta.notes || null
       })
       .select()
       .single();
@@ -113,7 +111,7 @@ export async function POST(request: NextRequest) {
       attendance: {
         id: attendance.id,
         status: attendance.status,
-        waktu: attendance.waktu,
+        waktu_masuk: attendance.waktu_masuk,
         user: {
           nama: user.nama,
           role: user.role

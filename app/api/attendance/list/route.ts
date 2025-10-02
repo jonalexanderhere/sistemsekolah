@@ -18,9 +18,11 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         tanggal,
-        waktu,
+        waktu_masuk,
+        waktu_keluar,
         status,
-        meta,
+        method,
+        notes,
         users (
           id,
           nama,
@@ -28,7 +30,7 @@ export async function GET(request: NextRequest) {
           nisn
         )
       `)
-      .order('waktu', { ascending: false });
+      .order('created_at', { ascending: false });
 
     // Apply filters
     if (date) {

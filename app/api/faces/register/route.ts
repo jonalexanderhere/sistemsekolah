@@ -28,10 +28,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update user with face embedding
+    // Update user with face embedding and registration timestamp
     const { error: updateError } = await supabaseAdmin
       .from('users')
-      .update({ face_embedding: faceEmbedding })
+      .update({ 
+        face_embedding: faceEmbedding,
+        face_registered_at: new Date().toISOString()
+      })
       .eq('id', userId);
 
     if (updateError) {
@@ -47,7 +50,11 @@ export async function POST(request: NextRequest) {
       .from('faces')
       .insert({
         user_id: userId,
-        embedding: faceEmbedding
+        embedding: faceEmbedding,
+        is_primary: true,
+        is_active: true,
+        confidence: 1.0,
+        quality_score: 0.9
       });
 
     if (faceError) {
