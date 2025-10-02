@@ -39,8 +39,7 @@ export async function POST(request: NextRequest) {
         request_id: crypto.randomUUID(),
         session_id: request.headers.get('x-session-id') || null,
         status: 'success'
-      })
-      .select('id');
+      });
 
     if (error) {
       console.error('System log error:', error);
@@ -50,10 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      log_id: data && data.length > 0 ? (data[0] as any).id : null 
-    });
+    return NextResponse.json({ success: true });
 
   } catch (error) {
     console.error('System log API error:', error);
