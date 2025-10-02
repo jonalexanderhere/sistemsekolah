@@ -18,7 +18,11 @@
     "import-all-users": "node scripts/import-students.js",
     "complete-setup": "node scripts/complete-setup.js",
     "full-setup": "node scripts/full-setup.js",
-    "github-setup": "node scripts/github-setup.js"
+    "github-setup": "node scripts/github-setup.js",
+    "setup-database-v2": "node scripts/setup-database-v2.js",
+    "migrate-to-v2": "node scripts/migration-v2.js",
+    "rollback-migration": "node scripts/migration-v2.js rollback",
+    "full-setup-v2": "npm run setup-env && npm run setup-database-v2 && npm run import-all-users && npm run download-models"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
