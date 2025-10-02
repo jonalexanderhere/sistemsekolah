@@ -133,9 +133,9 @@ export default function SettingsPage() {
     try {
       setIsSaving(true);
       
-      const method = settings?.id && settings?.id !== 'default' ? 'PUT' : 'POST';
-      const body = method === 'PUT' 
-        ? { ...formData, id: settings?.id }
+      const method = settings?.id && settings.id !== 'default' ? 'PUT' : 'POST';
+      const body = method === 'PUT' && settings?.id
+        ? { ...formData, id: settings.id }
         : { ...formData, created_by: user.id };
 
       const response = await fetch('/api/attendance/settings', {
