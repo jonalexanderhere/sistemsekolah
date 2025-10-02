@@ -99,11 +99,11 @@ export default function HomePage() {
           description: data.message || `Selamat datang, ${data.user.nama}!`
         });
 
-        // Auto-redirect based on role
-        if (data.redirect && data.redirect !== '/') {
+        // Auto-redirect based on role (only for admin and guru)
+        if (data.redirect && data.redirect !== '/' && (data.user.role === 'admin' || data.user.role === 'guru')) {
           setTimeout(() => {
             router.push(data.redirect);
-          }, 1000); // 1 second delay to show toast
+          }, 1500); // 1.5 second delay to show toast
         }
       } else {
         toast({

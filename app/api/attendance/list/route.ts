@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       `)
       .order('created_at', { ascending: false });
 
-    // Apply filters
+    // Apply filters with proper date handling
     if (date) {
       query = query.eq('tanggal', date);
     }
@@ -47,6 +47,13 @@ export async function GET(request: NextRequest) {
       query = query.gte('tanggal', startDate);
     } else if (endDate) {
       query = query.lte('tanggal', endDate);
+    }
+
+    // Add default date filter if no date filters provided
+    if (!date && !startDate && !endDate) {
+      const today = new Date().toISOString().split('T')[0];
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      query = query.gte('tanggal', thirtyDaysAgo).lte('tanggal', today);
     }
 
     // Apply pagination

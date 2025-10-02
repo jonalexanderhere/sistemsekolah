@@ -23,7 +23,8 @@
     "migrate-to-v2": "node scripts/migration-v2.js",
     "rollback-migration": "node scripts/migration-v2.js rollback",
     "create-default-users": "node scripts/create-default-users.js",
-    "full-setup-v2": "npm run setup-env && npm run setup-database-v2 && npm run create-default-users && npm run import-all-users && npm run download-models",
+    "clean-reimport-students": "node scripts/clean-and-reimport-students.js",
+    "full-setup-v2": "npm run setup-env && npm run setup-database-v2 && npm run create-default-users && npm run clean-reimport-students && npm run download-models",
     "test-api": "node scripts/test-api-endpoints.js"
   },
   "dependencies": {

@@ -171,17 +171,35 @@ async function importStudents() {
     try {
         // Process student data
         const processedStudents = dataSiswa.map(student => {
-            // Use ID as NISN if NISN is empty
-            const nisn = student.nisn || student.id;
+            // Use NISN if available, otherwise use ID as NIS (Nomor Induk Siswa)
+            const studentNumber = student.nisn && student.nisn.trim() !== '' ? student.nisn : student.id;
+            const numberType = student.nisn && student.nisn.trim() !== '' ? 'NISN' : 'NIS';
+            
+            // Generate clean email from name
+            const emailName = student.nama.toLowerCase()
+                .replace(/[^a-z\s]/g, '')
+                .replace(/\s+/g, '.')
+                .replace(/\.+/g, '.')
+                .replace(/^\.+|\.+$/g, '');
+            
+            console.log(`📝 Processing: ${student.nama} - ${numberType}: ${studentNumber}`);
             
             return {
                 role: 'siswa',
                 nama: student.nama,
-                nisn: nisn,
-                identitas: `${student.nama.toLowerCase().replace(/\s+/g, '.')}@sisfotjkt2.com`,
-                external_auth_id: `student-${nisn}`,
-                class_name: getRandomClass(), // Assign random class for diversity
-                is_active: true
+                nisn: studentNumber, // Store in nisn field regardless of type
+                identitas: `${emailName}@sisfotjkt2.com`,
+                external_auth_id: `student-${studentNumber}`,
+                email: `${emailName}@sisfotjkt2.com`,
+                phone: null,
+                address: null,
+                birth_date: null,
+                gender: null,
+                class_name: getRandomClass(),
+                student_id: studentNumber,
+                employee_id: null,
+                is_active: true,
+                is_verified: true
             };
         });
         

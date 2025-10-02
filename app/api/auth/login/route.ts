@@ -15,17 +15,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by NISN/NIP or identitas
-    let query = supabaseAdmin.from('users').select('*');
-    
-    if (nisn || nip) {
-      // For teachers, NIP is stored in nisn field
-      // For students, NISN is stored in nisn field
-      query = query.eq('nisn', nisn || nip);
-    } else if (identitas) {
-      query = query.eq('identitas', identitas);
-    }
+    let user = null;
+    let error = null;
 
-    const { data: user, error } = await query.single();
+    if (nisn || nip) {
+      // Try to find by NISN/NIP first
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .eq('nisn', nisn || nip)
+        .single();
+      
+      user = userData;
+      error = userError;
+    } else if (identitas) {
+      // Try to find by identitas
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .eq('identitas', identitas)
+        .single();
+      
+      user = userData;
+      error = userError;
+    }
 
     if (error || !user) {
       return NextResponse.json(
