@@ -40,8 +40,7 @@ export async function POST(request: NextRequest) {
         session_id: request.headers.get('x-session-id') || null,
         status: 'success'
       })
-      .select('id')
-      .single();
+      .select('id');
 
     if (error) {
       console.error('System log error:', error);
@@ -51,7 +50,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ success: true, log_id: data?.id });
+    return NextResponse.json({ 
+      success: true, 
+      log_id: data && data.length > 0 ? (data[0] as any).id : null 
+    });
 
   } catch (error) {
     console.error('System log API error:', error);
