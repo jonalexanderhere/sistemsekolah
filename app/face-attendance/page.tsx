@@ -55,7 +55,7 @@ export default function FaceAttendancePage() {
           .map((user: any) => ({
             id: user.id,
             descriptor: [], // Will be loaded from face embedding
-            label: `${user.nama} (${user.role})`
+            label: `${user.nama || 'Unknown'} (${user.role || 'Unknown'})`
           }));
         
         setKnownFaces(facesData);
@@ -267,8 +267,8 @@ export default function FaceAttendancePage() {
                       recentAttendance.map((record) => (
                         <div key={record.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div>
-                            <p className="font-medium text-sm">{record.user.nama}</p>
-                            <p className="text-xs text-gray-600 capitalize">{record.user.role}</p>
+                            <p className="font-medium text-sm">{record.user?.nama || 'Unknown'}</p>
+                            <p className="text-xs text-gray-600 capitalize">{record.user?.role || 'Unknown'}</p>
                           </div>
                           <div className="text-right">
                             <span className={`px-2 py-1 rounded-full text-xs ${

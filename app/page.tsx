@@ -227,7 +227,7 @@ export default function HomePage() {
                             }
                           </p>
                           <p className="text-xs text-gray-500">
-                            {announcement.users.nama} • {new Date(announcement.tanggal).toLocaleDateString('id-ID')}
+                            {announcement.users?.nama || 'Unknown'} • {new Date(announcement.tanggal).toLocaleDateString('id-ID')}
                           </p>
                         </div>
                       ))
@@ -490,7 +490,7 @@ export default function HomePage() {
                         <h4 className="font-semibold text-gray-900 mb-1">{announcement.judul}</h4>
                         <p className="text-gray-600 mb-2 leading-relaxed">{announcement.isi}</p>
                         <p className="text-sm text-gray-500">
-                          {announcement.users.nama} • {new Date(announcement.tanggal).toLocaleDateString('id-ID')}
+                          {announcement.users?.nama || 'Unknown'} • {new Date(announcement.tanggal).toLocaleDateString('id-ID')}
                         </p>
                       </div>
                     ))

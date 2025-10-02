@@ -67,8 +67,8 @@ export default function AttendancePage() {
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(record =>
-        record.users.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.users.nisn?.toLowerCase().includes(searchTerm.toLowerCase())
+        record.users?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.users?.nisn?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -344,9 +344,9 @@ export default function AttendancePage() {
                       {filteredData.map((record, index) => (
                         <tr key={record.id} className="border-b hover:bg-gray-50">
                           <td className="p-3">{index + 1}</td>
-                          <td className="p-3 font-medium">{record.users.nama}</td>
-                          <td className="p-3 capitalize">{record.users.role}</td>
-                          <td className="p-3">{record.users.nisn || '-'}</td>
+                          <td className="p-3 font-medium">{record.users?.nama || 'Unknown'}</td>
+                          <td className="p-3 capitalize">{record.users?.role || 'Unknown'}</td>
+                          <td className="p-3">{record.users?.nisn || '-'}</td>
                           <td className="p-3">
                             {new Date(record.tanggal).toLocaleDateString('id-ID')}
                           </td>

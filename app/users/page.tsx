@@ -133,7 +133,7 @@ export default function UsersPage() {
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(user =>
-        user.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.nisn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.identitas?.toLowerCase().includes(searchTerm.toLowerCase())
       );
