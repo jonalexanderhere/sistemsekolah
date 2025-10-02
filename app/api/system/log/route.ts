@@ -39,7 +39,9 @@ export async function POST(request: NextRequest) {
         request_id: crypto.randomUUID(),
         session_id: request.headers.get('x-session-id') || null,
         status: 'success'
-      });
+      })
+      .select('id')
+      .single();
 
     if (error) {
       console.error('System log error:', error);
