@@ -107,16 +107,16 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-white">
         {/* Header */}
-        <header className="border-b border-gray-100">
-          <div className="container mx-auto px-6 py-6">
+        <header className="border-b border-gray-100 bg-white">
+          <div className="container mx-auto px-4 md:px-6 py-4 md:py-6">
             <div className="flex items-center justify-center">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                  <GraduationCap className="h-7 w-7 text-white" />
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <GraduationCap className="h-6 w-6 md:h-7 md:w-7 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">EduFace Cloud Pro</h1>
-                  <p className="text-sm text-gray-600">TJKT 2 Smart School System</p>
+                <div className="text-center md:text-left">
+                  <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">EduFace Cloud Pro</h1>
+                  <p className="text-xs md:text-sm text-gray-600 leading-tight">TJKT 2 Smart School System</p>
                 </div>
               </div>
             </div>
@@ -124,14 +124,14 @@ export default function HomePage() {
         </header>
 
         {/* Hero Section */}
-        <section className="py-20">
-          <div className="container mx-auto px-6">
+        <section className="py-12 md:py-20">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 Sistem Absensi Pintar dengan
-                <span className="text-blue-600 block">Face Recognition AI</span>
+                <span className="text-blue-600 block mt-2">Face Recognition AI</span>
               </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+              <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
                 Solusi modern untuk manajemen kehadiran siswa dengan teknologi pengenalan wajah yang akurat dan efisien
               </p>
               
