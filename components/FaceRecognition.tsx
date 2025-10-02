@@ -88,17 +88,68 @@ export default function FaceRecognition({
     try {
       setIsLoading(true);
       
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: 'user'
+      // Stop any existing streams first
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+
+      // Check if camera is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported');
+      }
+
+      // Try different camera configurations
+      const configs = [
+        {
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user'
+          }
+        },
+        {
+          video: {
+            width: { min: 320, ideal: 640, max: 1280 },
+            height: { min: 240, ideal: 480, max: 720 },
+            facingMode: 'user'
+          }
+        },
+        {
+          video: true // Fallback to basic video
         }
-      });
+      ];
+
+      let stream = null;
+      let lastError = null;
+
+      for (const config of configs) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(config);
+          break;
+        } catch (err) {
+          lastError = err;
+          console.warn('Camera config failed:', config, err);
+        }
+      }
+
+      if (!stream) {
+        throw lastError || new Error('No camera configuration worked');
+      }
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
+        
+        // Add error handling for video element
+        videoRef.current.onerror = (e) => {
+          console.error('Video element error:', e);
+          toast({
+            title: "Error",
+            description: "Terjadi kesalahan pada video. Coba refresh halaman.",
+            variant: "destructive"
+          });
+        };
         
         videoRef.current.onloadedmetadata = () => {
           setIsStreaming(true);
@@ -112,17 +163,45 @@ export default function FaceRecognition({
           // Start face detection
           startFaceDetection();
         };
+
+        // Set a timeout to handle cases where metadata never loads
+        setTimeout(() => {
+          if (!isStreaming && streamRef.current) {
+            console.warn('Video metadata loading timeout');
+            setIsLoading(false);
+            toast({
+              title: "Warning",
+              description: "Kamera lambat merespons. Coba refresh halaman jika masalah berlanjut.",
+              variant: "destructive"
+            });
+          }
+        }, 10000);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting camera:', error);
+      
+      let errorMessage = "Gagal mengakses kamera.";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Izin kamera ditolak. Silakan berikan izin kamera dan refresh halaman.";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "Kamera tidak ditemukan. Pastikan kamera terhubung.";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = "Kamera sedang digunakan aplikasi lain. Tutup aplikasi lain dan coba lagi.";
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage = "Kamera tidak mendukung konfigurasi yang diminta.";
+      } else if (error.name === 'SecurityError') {
+        errorMessage = "Akses kamera diblokir karena alasan keamanan. Pastikan menggunakan HTTPS.";
+      }
+      
       toast({
-        title: "Error",
-        description: "Gagal mengakses kamera. Pastikan izin kamera telah diberikan.",
+        title: "Error Kamera",
+        description: errorMessage,
         variant: "destructive"
       });
       setIsLoading(false);
     }
-  }, [modelsLoaded, toast]);
+  }, [modelsLoaded, toast, isStreaming]);
 
   // Stop camera stream
   const stopCamera = useCallback(() => {
