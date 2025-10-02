@@ -22,7 +22,9 @@
     "setup-database-v2": "node scripts/setup-database-v2.js",
     "migrate-to-v2": "node scripts/migration-v2.js",
     "rollback-migration": "node scripts/migration-v2.js rollback",
-    "full-setup-v2": "npm run setup-env && npm run setup-database-v2 && npm run import-all-users && npm run download-models"
+    "create-default-users": "node scripts/create-default-users.js",
+    "full-setup-v2": "npm run setup-env && npm run setup-database-v2 && npm run create-default-users && npm run import-all-users && npm run download-models",
+    "test-api": "node scripts/test-api-endpoints.js"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",

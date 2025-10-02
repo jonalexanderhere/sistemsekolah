@@ -99,10 +99,18 @@ export default function UsersPage() {
         
         setCurrentUser(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
+        
         toast({
           title: "Login Berhasil",
-          description: `Selamat datang, ${data.user.nama}!`
+          description: data.message || `Selamat datang, ${data.user.nama}!`
         });
+
+        // Auto-redirect if user is admin (should go to admin dashboard)
+        if (data.redirect && data.user.role === 'admin') {
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 1500);
+        }
       } else {
         toast({
           title: "Login Gagal",

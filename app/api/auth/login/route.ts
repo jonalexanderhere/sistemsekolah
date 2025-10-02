@@ -34,6 +34,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine redirect URL based on role
+    let redirectUrl = '/';
+    switch (user.role) {
+      case 'admin':
+        redirectUrl = '/admin-dashboard';
+        break;
+      case 'guru':
+        redirectUrl = '/teacher-dashboard';
+        break;
+      case 'siswa':
+        redirectUrl = '/';
+        break;
+      default:
+        redirectUrl = '/';
+    }
+
     // Return user data (without sensitive info)
     const userData = {
       id: user.id,
@@ -41,12 +57,18 @@ export async function POST(request: NextRequest) {
       role: user.role,
       nisn: user.nisn,
       identitas: user.identitas,
-      has_face: !!user.face_embedding
+      email: user.email,
+      class_name: user.class_name,
+      has_face: !!user.face_embedding,
+      is_active: user.is_active,
+      is_verified: user.is_verified
     };
 
     return NextResponse.json({
       success: true,
-      user: userData
+      user: userData,
+      redirect: redirectUrl,
+      message: `Selamat datang, ${user.nama}!`
     });
 
   } catch (error) {

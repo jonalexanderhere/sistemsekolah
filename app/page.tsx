@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { GraduationCap, Users, Calendar, Bell, Camera, BookOpen, Zap, Shield, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import LogoutButton from '@/components/LogoutButton';
+import RoleBasedWelcome from '@/components/RoleBasedWelcome';
 
 interface User {
   id: string;
@@ -15,7 +16,11 @@ interface User {
   role: 'siswa' | 'guru' | 'admin';
   nisn?: string;
   identitas?: string;
+  email?: string;
+  class_name?: string;
   has_face: boolean;
+  is_active?: boolean;
+  is_verified?: boolean;
 }
 
 interface Announcement {
@@ -88,10 +93,18 @@ export default function HomePage() {
       if (data.success) {
         setUser(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
+        
         toast({
           title: "Berhasil Login",
-          description: `Selamat datang, ${data.user.nama}!`
+          description: data.message || `Selamat datang, ${data.user.nama}!`
         });
+
+        // Auto-redirect based on role
+        if (data.redirect && data.redirect !== '/') {
+          setTimeout(() => {
+            router.push(data.redirect);
+          }, 1000); // 1 second delay to show toast
+        }
       } else {
         toast({
           title: "Login Gagal",
@@ -366,173 +379,39 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Selamat datang, {user.nama}!
-          </h2>
-          <p className="text-gray-600">
-            {user.role === 'siswa' && `NISN: ${user.nisn}`}
-            {user.role === 'guru' && `ID: ${user.identitas}`}
-          </p>
-        </div>
+        {/* Role-based Welcome Component */}
+        <RoleBasedWelcome user={user} />
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-300 border-0 shadow-md"
-            onClick={() => router.push('/attendance')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
-                  <Calendar className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Absensi</h3>
-                  <p className="text-sm text-gray-600">
-                    {user.role === 'siswa' ? 'Lihat absensi' : 'Kelola absensi'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-300 border-0 shadow-md"
-            onClick={() => router.push('/face-register')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
-                  <Camera className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Registrasi Wajah</h3>
-                  <p className="text-sm text-gray-600">
-                    {user.has_face ? 'Update wajah' : 'Daftar wajah'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-300 border-0 shadow-md"
-            onClick={() => router.push('/face-attendance')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mr-4">
-                  <Camera className="h-6 w-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Absensi Wajah</h3>
-                  <p className="text-sm text-gray-600">Absensi dengan wajah</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {user.role === 'guru' && (
-            <>
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 border-0 shadow-md"
-                onClick={() => router.push('/users')}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
-                      <Users className="h-6 w-6 text-purple-600" />
+        {/* Recent Announcements */}
+        <div className="mt-8">
+          <Card className="border-0 shadow-md">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <Bell className="h-5 w-5 text-blue-600" />
+                Pengumuman Terbaru
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {announcements.length > 0 ? (
+                  announcements.map((announcement) => (
+                    <div key={announcement.id} className="border-l-4 border-blue-500 pl-4 py-3 bg-gray-50 rounded-r-lg">
+                      <h4 className="font-semibold text-gray-900 mb-1">{announcement.judul}</h4>
+                      <p className="text-gray-600 mb-2 leading-relaxed">{announcement.isi}</p>
+                      <p className="text-sm text-gray-500">
+                        {announcement.users?.nama || 'Unknown'} • {new Date(announcement.tanggal).toLocaleDateString('id-ID')}
+                      </p>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Data Siswa</h3>
-                      <p className="text-sm text-gray-600">Kelola data siswa</p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg">Belum ada pengumuman</p>
                   </div>
-                </CardContent>
-              </Card>
-              
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 border-0 shadow-md"
-                onClick={() => router.push('/settings')}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mr-4">
-                      <Calendar className="h-6 w-6 text-indigo-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Pengaturan</h3>
-                      <p className="text-sm text-gray-600">Atur waktu absensi</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Status Card */}
-          <div className="lg:col-span-1">
-            <Card className="border-0 shadow-md">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold">Status Akun</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <span className="font-medium text-gray-700">Status Wajah</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    user.has_face 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {user.has_face ? 'Terdaftar' : 'Belum Terdaftar'}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <span className="font-medium text-gray-700">Role</span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium capitalize">
-                    {user.role}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Announcements */}
-          <div className="lg:col-span-2">
-            <Card className="border-0 shadow-md">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                  <Bell className="h-5 w-5 text-blue-600" />
-                  Pengumuman Terbaru
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {announcements.length > 0 ? (
-                    announcements.map((announcement) => (
-                      <div key={announcement.id} className="border-l-4 border-blue-500 pl-4 py-3 bg-gray-50 rounded-r-lg">
-                        <h4 className="font-semibold text-gray-900 mb-1">{announcement.judul}</h4>
-                        <p className="text-gray-600 mb-2 leading-relaxed">{announcement.isi}</p>
-                        <p className="text-sm text-gray-500">
-                          {announcement.users?.nama || 'Unknown'} • {new Date(announcement.tanggal).toLocaleDateString('id-ID')}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-12">
-                      <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500 text-lg">Belum ada pengumuman</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
