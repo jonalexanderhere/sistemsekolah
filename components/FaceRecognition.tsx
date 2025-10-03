@@ -60,6 +60,12 @@ export default function FaceRecognition({
             description: "Gagal memuat model face recognition. Pastikan file model tersedia.",
             variant: "destructive"
           });
+        } else {
+          // Models loaded successfully, show success message
+          toast({
+            title: "Model Loaded",
+            description: "Model face recognition berhasil dimuat. Kamera siap digunakan.",
+          });
         }
       } catch (error) {
         console.error('Error initializing models:', error);
@@ -144,13 +150,13 @@ export default function FaceRecognition({
     console.log('🎥 Starting camera...');
     console.log('🎥 Models loaded:', modelsLoaded);
     
+    // Allow camera to start even if models are not loaded yet
     if (!modelsLoaded) {
+      console.log('🎥 Models not loaded yet, but starting camera anyway...');
       toast({
-        title: "Error",
-        description: "Model belum dimuat. Tunggu sebentar.",
-        variant: "destructive"
+        title: "Info",
+        description: "Memulai kamera, model akan dimuat di background.",
       });
-      return;
     }
 
     try {
@@ -265,7 +271,7 @@ export default function FaceRecognition({
             resizeCanvasToMatch(canvasRef.current, videoRef.current);
           }
           
-          // Start face detection
+          // Start face detection (will skip if models not loaded)
           console.log('🎥 Starting face detection');
           startFaceDetection();
         };
@@ -359,7 +365,13 @@ export default function FaceRecognition({
     }
 
     const interval = setInterval(async () => {
-      if (!videoRef.current || !canvasRef.current || !modelsLoaded || isProcessing) {
+      if (!videoRef.current || !canvasRef.current || isProcessing) {
+        return;
+      }
+      
+      // Skip face detection if models not loaded yet
+      if (!modelsLoaded) {
+        console.log('🎥 Models not loaded yet, skipping face detection');
         return;
       }
 
