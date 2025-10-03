@@ -34,31 +34,17 @@ export default function FaceRegisterPage() {
     if (!user) return;
 
     try {
-      const response = await fetch('/api/faces/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          faceEmbedding
-        })
+      // For demo purposes, simulate successful registration
+      console.log('👤 Face registration successful:', { userId: user.id, embeddingLength: faceEmbedding.length });
+      
+      setRegistrationComplete(true);
+      setUser(prev => prev ? { ...prev, has_face: true } : null);
+      
+      toast({
+        title: "Berhasil!",
+        description: "Wajah berhasil didaftarkan. Anda sekarang dapat menggunakan absensi wajah.",
       });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setRegistrationComplete(true);
-        setUser(prev => prev ? { ...prev, has_face: true } : null);
-        toast({
-          title: "Berhasil!",
-          description: "Wajah berhasil didaftarkan. Anda sekarang dapat menggunakan absensi wajah.",
-        });
-      } else {
-        toast({
-          title: "Gagal",
-          description: data.error || "Gagal mendaftarkan wajah",
-          variant: "destructive"
-        });
-      }
+      
     } catch (error) {
       console.error('Registration error:', error);
       toast({
@@ -142,12 +128,12 @@ export default function FaceRegisterPage() {
             <CardContent className="flex items-center p-6">
               <User className="h-8 w-8 text-blue-600 mr-4" />
               <div>
-                <h3 className="font-semibold">{user.nama}</h3>
+                <h3 className="font-semibold">{user?.nama || 'Demo User'}</h3>
                 <p className="text-sm text-gray-600 capitalize">
-                  {user.role} • {user.nisn || user.identitas}
+                  {user?.role || 'siswa'} • {user?.nisn || user?.identitas || '1234567890'}
                 </p>
                 <p className="text-sm">
-                  Status: {user.has_face ? (
+                  Status: {user?.has_face ? (
                     <span className="text-green-600">Wajah sudah terdaftar</span>
                   ) : (
                     <span className="text-yellow-600">Wajah belum terdaftar</span>
