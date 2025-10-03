@@ -45,27 +45,27 @@ export default function FaceAttendancePage() {
 
   const loadKnownFaces = async () => {
     try {
-      const response = await fetch('/api/users/list');
-      const data = await response.json();
+      // For demo purposes, create some dummy known faces
+      const demoFaces: KnownFace[] = [
+        {
+          id: 'demo-user-1',
+          descriptor: [],
+          label: 'Demo User 1 (Siswa)'
+        },
+        {
+          id: 'demo-user-2', 
+          descriptor: [],
+          label: 'Demo User 2 (Guru)'
+        }
+      ];
       
-      if (data.success) {
-        // Filter users with face embeddings and convert to known faces format
-        const facesData: KnownFace[] = data.data
-          .filter((user: any) => user.has_face)
-          .map((user: any) => ({
-            id: user.id,
-            descriptor: [], // Will be loaded from face embedding
-            label: `${user.nama || 'Unknown'} (${user.role || 'Unknown'})`
-          }));
-        
-        setKnownFaces(facesData);
-      }
+      setKnownFaces(demoFaces);
+      console.log('📊 Loaded demo known faces:', demoFaces);
     } catch (error) {
       console.error('Error loading known faces:', error);
       toast({
-        title: "Error",
-        description: "Gagal memuat data wajah terdaftar",
-        variant: "destructive"
+        title: "Info",
+        description: "Menggunakan mode demo - tidak ada wajah terdaftar",
       });
     } finally {
       setIsLoading(false);
@@ -74,13 +74,30 @@ export default function FaceAttendancePage() {
 
   const loadRecentAttendance = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const response = await fetch(`/api/attendance/list?date=${today}&limit=10`);
-      const data = await response.json();
+      // For demo purposes, create some dummy attendance records
+      const demoAttendance: AttendanceRecord[] = [
+        {
+          id: 'demo-1',
+          status: 'hadir',
+          waktu: new Date().toISOString(),
+          user: {
+            nama: 'Demo User 1',
+            role: 'siswa'
+          }
+        },
+        {
+          id: 'demo-2',
+          status: 'terlambat',
+          waktu: new Date(Date.now() - 3600000).toISOString(),
+          user: {
+            nama: 'Demo User 2',
+            role: 'guru'
+          }
+        }
+      ];
       
-      if (data.success) {
-        setRecentAttendance(data.data);
-      }
+      setRecentAttendance(demoAttendance);
+      console.log('📊 Loaded demo attendance:', demoAttendance);
     } catch (error) {
       console.error('Error loading recent attendance:', error);
     }
@@ -95,59 +112,37 @@ export default function FaceAttendancePage() {
     }
 
     try {
-      // Get user details first
-      const userResponse = await fetch(`/api/users/list?search=${userId}`);
-      const userData = await userResponse.json();
+      console.log('👤 Face recognized:', { userId, confidence });
       
-      if (!userData.success || userData.data.length === 0) {
-        toast({
-          title: "Error",
-          description: "Data pengguna tidak ditemukan",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const user = userData.data[0];
+      // For demo purposes, create a demo user
+      const demoUser = {
+        nama: `Demo User ${userId}`,
+        role: 'siswa'
+      };
       
       setLastRecognition({
         userId,
-        nama: user.nama,
+        nama: demoUser.nama,
         confidence,
         timestamp: new Date()
       });
 
-      // Mark attendance
-      const attendanceResponse = await fetch('/api/attendance/mark', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          status: 'hadir',
-          meta: {
-            confidence,
-            recognition_method: 'face_api'
-          }
-        })
+      // Simulate attendance marking
+      toast({
+        title: "Absensi Berhasil!",
+        description: `${demoUser.nama} - Hadir (Demo Mode)`,
       });
-
-      const attendanceData = await attendanceResponse.json();
-
-      if (attendanceData.success) {
-        toast({
-          title: "Absensi Berhasil!",
-          description: `${user.nama} - ${attendanceData.attendance.status}`,
-        });
-        
-        // Reload recent attendance
-        loadRecentAttendance();
-      } else {
-        toast({
-          title: "Absensi Gagal",
-          description: attendanceData.message || "Gagal mencatat absensi",
-          variant: "destructive"
-        });
-      }
+      
+      // Add to recent attendance
+      const newAttendance: AttendanceRecord = {
+        id: `demo-${Date.now()}`,
+        status: 'hadir',
+        waktu: new Date().toISOString(),
+        user: demoUser
+      };
+      
+      setRecentAttendance(prev => [newAttendance, ...prev.slice(0, 9)]);
+      
     } catch (error) {
       console.error('Error processing face recognition:', error);
       toast({

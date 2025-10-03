@@ -19,59 +19,16 @@ interface User {
 }
 
 export default function FaceRegisterPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loginForm, setLoginForm] = useState({ nisn: '', nip: '', identitas: '' });
-  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>({
+    id: 'demo-user',
+    nama: 'Demo User',
+    role: 'siswa',
+    nisn: '1234567890',
+    has_face: false
+  });
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!loginForm.nisn && !loginForm.nip && !loginForm.identitas) {
-      toast({
-        title: "Error",
-        description: "Masukkan NISN/NIP atau Identitas",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginForm)
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setUser(data.user);
-        toast({
-          title: "Login Berhasil",
-          description: `Selamat datang, ${data.user.nama}!`
-        });
-      } else {
-        toast({
-          title: "Login Gagal",
-          description: data.error || "User tidak ditemukan",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Terjadi kesalahan saat login",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleFaceRegistered = async (faceEmbedding: number[]) => {
     if (!user) return;
@@ -112,77 +69,7 @@ export default function FaceRegisterPage() {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-md mx-auto">
-            <div className="mb-6">
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push('/')}
-                className="mb-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Kembali
-              </Button>
-              
-              <h1 className="text-2xl font-bold mb-2">Registrasi Wajah</h1>
-              <p className="text-gray-600">
-                Login terlebih dahulu untuk mendaftarkan wajah Anda
-              </p>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Login</CardTitle>
-                <CardDescription>
-                  Masukkan NISN (siswa) atau Identitas (guru)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      NISN (untuk siswa)
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Masukkan NISN"
-                      value={loginForm.nisn}
-                      onChange={(e) => setLoginForm(prev => ({ ...prev, nisn: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div className="text-center text-sm text-gray-500">atau</div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Identitas (untuk guru)
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Masukkan nomor identitas"
-                      value={loginForm.identitas}
-                      onChange={(e) => setLoginForm(prev => ({ ...prev, identitas: e.target.value }))}
-                    />
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Memproses...' : 'Login'}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Skip login, go directly to registration
 
   if (registrationComplete) {
     return (

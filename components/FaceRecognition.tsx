@@ -141,6 +141,9 @@ export default function FaceRecognition({
 
   // Start camera stream
   const startCamera = useCallback(async () => {
+    console.log('🎥 Starting camera...');
+    console.log('🎥 Models loaded:', modelsLoaded);
+    
     if (!modelsLoaded) {
       toast({
         title: "Error",
@@ -152,12 +155,18 @@ export default function FaceRecognition({
 
     try {
       setIsLoading(true);
+      setCameraError(null);
+      
+      console.log('🎥 Checking camera availability...');
       
       // Check camera availability first
       await checkCameraAvailability();
       
+      console.log('🎥 Camera availability check passed');
+      
       // Stop any existing streams first
       if (streamRef.current) {
+        console.log('🎥 Stopping existing stream...');
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
@@ -214,21 +223,26 @@ export default function FaceRecognition({
 
       for (const config of configs) {
         try {
+          console.log('🎥 Trying camera config:', config);
           stream = await navigator.mediaDevices.getUserMedia(config);
+          console.log('🎥 Camera stream obtained successfully');
           break;
         } catch (err) {
           lastError = err;
-          console.warn('Camera config failed:', config, err);
+          console.warn('🎥 Camera config failed:', config, err);
         }
       }
 
       if (!stream) {
+        console.error('🎥 No camera configuration worked');
         throw lastError || new Error('No camera configuration worked');
       }
 
+      console.log('🎥 Setting up video element...');
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
+        console.log('🎥 Video element configured');
         
         // Add error handling for video element
         videoRef.current.onerror = (e) => {
@@ -241,16 +255,27 @@ export default function FaceRecognition({
         };
         
         videoRef.current.onloadedmetadata = () => {
+          console.log('🎥 Video metadata loaded');
           setIsStreaming(true);
           setIsLoading(false);
           
           // Resize canvas to match video
           if (canvasRef.current && videoRef.current) {
+            console.log('🎥 Resizing canvas to match video');
             resizeCanvasToMatch(canvasRef.current, videoRef.current);
           }
           
           // Start face detection
+          console.log('🎥 Starting face detection');
           startFaceDetection();
+        };
+
+        videoRef.current.oncanplay = () => {
+          console.log('🎥 Video can play');
+        };
+
+        videoRef.current.onplay = () => {
+          console.log('🎥 Video started playing');
         };
 
         // Set a timeout to handle cases where metadata never loads
