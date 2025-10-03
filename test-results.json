@@ -1,0 +1,161 @@
+{
+  "environment": {
+    "NEXT_PUBLIC_SUPABASE_URL": {
+      "exists": false,
+      "hasValue": false
+    },
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
+      "exists": false,
+      "hasValue": false
+    },
+    "SUPABASE_SERVICE_ROLE_KEY": {
+      "exists": false,
+      "hasValue": false
+    },
+    "NEXT_PUBLIC_APP_NAME": {
+      "exists": false,
+      "hasValue": false
+    }
+  },
+  "database": {
+    "supabase/schema.sql": {
+      "exists": true
+    },
+    "supabase/enhanced-schema.sql": {
+      "exists": true
+    },
+    "supabase/complete-schema-v2.sql": {
+      "exists": true
+    }
+  },
+  "apis": {
+    "app/api/attendance/list/route.ts": {
+      "exists": true
+    },
+    "app/api/attendance/mark/route.ts": {
+      "exists": true
+    },
+    "app/api/attendance/settings/route.ts": {
+      "exists": true
+    },
+    "app/api/auth/login/route.ts": {
+      "exists": true
+    },
+    "app/api/users/list/route.ts": {
+      "exists": true
+    },
+    "app/api/faces/register/route.ts": {
+      "exists": true
+    },
+    "app/api/faces/recognize/route.ts": {
+      "exists": true
+    },
+    "app/api/exams/list/route.ts": {
+      "exists": true
+    },
+    "app/api/exams/create/route.ts": {
+      "exists": true
+    },
+    "app/api/announcements/list/route.ts": {
+      "exists": true
+    },
+    "app/api/system/log/route.ts": {
+      "exists": true
+    },
+    "app/api/test-db/route.ts": {
+      "exists": true
+    }
+  },
+  "components": {
+    "package.json": {
+      "exists": true
+    },
+    "next.config.js": {
+      "exists": true
+    },
+    "lib/supabase.ts": {
+      "exists": true
+    },
+    "app/api/attendance/list/route.ts": {
+      "exists": true
+    },
+    "app/api/test-db/route.ts": {
+      "exists": true
+    },
+    "components/FaceRecognition.tsx": {
+      "exists": true
+    },
+    "app/face-attendance/page.tsx": {
+      "exists": true
+    },
+    "app/face-register/page.tsx": {
+      "exists": true
+    },
+    "dep_@supabase/supabase-js": {
+      "exists": "^2.38.4"
+    },
+    "dep_@supabase/auth-helpers-nextjs": {
+      "exists": "^0.8.7"
+    },
+    "dep_face-api.js": {
+      "exists": "^0.22.2"
+    },
+    "dep_next": {
+      "exists": "14.0.3"
+    },
+    "dep_react": {
+      "exists": "^18"
+    },
+    "dep_react-dom": {
+      "exists": "^18"
+    },
+    "app/page.tsx": {
+      "exists": true
+    },
+    "app/layout.tsx": {
+      "exists": true
+    },
+    "app/attendance/page.tsx": {
+      "exists": true
+    },
+    "app/users/page.tsx": {
+      "exists": true
+    },
+    "app/settings/page.tsx": {
+      "exists": true
+    },
+    "app/teacher-dashboard/page.tsx": {
+      "exists": true
+    },
+    "app/admin-dashboard/page.tsx": {
+      "exists": true
+    },
+    "tailwind.config.js": {
+      "exists": true
+    },
+    "tsconfig.json": {
+      "exists": true
+    },
+    "postcss.config.js": {
+      "exists": true
+    }
+  },
+  "camera": {
+    "components/FaceRecognition.tsx": {
+      "exists": true
+    },
+    "lib/faceapi.ts": {
+      "exists": true
+    },
+    "public/models/face_landmark_68_model-shard1": {
+      "exists": true
+    },
+    "public/models/face_recognition_model-shard1": {
+      "exists": true
+    },
+    "public/models/tiny_face_detector_model-shard1": {
+      "exists": true
+    }
+  },
+  "summary": {}
+}

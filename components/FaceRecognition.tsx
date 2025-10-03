@@ -41,6 +41,8 @@ export default function FaceRecognition({
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [detectionInterval, setDetectionInterval] = useState<NodeJS.Timeout | null>(null);
   const [lastDetection, setLastDetection] = useState<any>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [permissionRequested, setPermissionRequested] = useState(false);
   
   const { toast } = useToast();
 
@@ -74,6 +76,69 @@ export default function FaceRecognition({
     initializeModels();
   }, [toast]);
 
+  // Request camera permission explicitly
+  const requestCameraPermission = useCallback(async () => {
+    try {
+      setPermissionRequested(true);
+      setCameraError(null);
+      
+      // Check if we're on HTTPS (required for camera access)
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+        throw new Error('HTTPS_REQUIRED');
+      }
+
+      // Check if camera API is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('CAMERA_NOT_SUPPORTED');
+      }
+
+      // Try to get camera permission with basic config
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user' } 
+      });
+      
+      // If successful, stop the stream immediately (we just wanted permission)
+      stream.getTracks().forEach(track => track.stop());
+      
+      toast({
+        title: "Izin Kamera Diberikan",
+        description: "Kamera siap digunakan. Klik 'Mulai Kamera' untuk memulai.",
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error('Permission request failed:', error);
+      setCameraError(error.message || error.name || 'UNKNOWN_ERROR');
+      return false;
+    }
+  }, [toast]);
+
+  // Check camera availability and permissions
+  const checkCameraAvailability = useCallback(async () => {
+    // Check if we're on HTTPS (required for camera access)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      throw new Error('HTTPS_REQUIRED');
+    }
+
+    // Check if camera API is supported
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('CAMERA_NOT_SUPPORTED');
+    }
+
+    // Check if camera permissions are already granted
+    try {
+      const permissions = await navigator.permissions.query({ name: 'camera' as PermissionName });
+      if (permissions.state === 'denied') {
+        throw new Error('PERMISSION_DENIED');
+      }
+    } catch (err) {
+      // Permission API not supported, continue with normal flow
+      console.log('Permission API not supported, continuing...');
+    }
+
+    return true;
+  }, []);
+
   // Start camera stream
   const startCamera = useCallback(async () => {
     if (!modelsLoaded) {
@@ -88,15 +153,13 @@ export default function FaceRecognition({
     try {
       setIsLoading(true);
       
+      // Check camera availability first
+      await checkCameraAvailability();
+      
       // Stop any existing streams first
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
-      }
-
-      // Check if camera is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera not supported');
       }
 
       // Try different camera configurations with more robust fallbacks
@@ -207,21 +270,36 @@ export default function FaceRecognition({
       console.error('Error starting camera:', error);
       
       let errorMessage = "Gagal mengakses kamera.";
+      let errorTitle = "Error Kamera";
       
-      if (error.name === 'NotAllowedError') {
-        errorMessage = "Izin kamera ditolak. Silakan berikan izin kamera dan refresh halaman.";
+      if (error.message === 'HTTPS_REQUIRED') {
+        errorTitle = "HTTPS Diperlukan";
+        errorMessage = "Akses kamera memerlukan koneksi HTTPS. Silakan akses aplikasi melalui HTTPS atau gunakan localhost untuk development.";
+      } else if (error.message === 'CAMERA_NOT_SUPPORTED') {
+        errorTitle = "Kamera Tidak Didukung";
+        errorMessage = "Browser Anda tidak mendukung akses kamera. Silakan gunakan browser modern seperti Chrome, Firefox, atau Safari.";
+      } else if (error.message === 'PERMISSION_DENIED') {
+        errorTitle = "Izin Kamera Ditolak";
+        errorMessage = "Izin kamera telah ditolak. Silakan:\n• Klik ikon kamera di address bar\n• Pilih 'Allow' untuk memberikan izin\n• Refresh halaman";
+      } else if (error.name === 'NotAllowedError') {
+        errorTitle = "Izin Kamera Ditolak";
+        errorMessage = "Izin kamera ditolak. Silakan:\n• Klik ikon kamera di address bar\n• Pilih 'Allow' untuk memberikan izin\n• Refresh halaman";
       } else if (error.name === 'NotFoundError') {
-        errorMessage = "Kamera tidak ditemukan. Pastikan kamera terhubung.";
+        errorTitle = "Kamera Tidak Ditemukan";
+        errorMessage = "Kamera tidak ditemukan. Pastikan:\n• Kamera terhubung dengan benar\n• Tidak ada aplikasi lain yang menggunakan kamera\n• Driver kamera sudah terinstall";
       } else if (error.name === 'NotReadableError') {
+        errorTitle = "Kamera Tidak Dapat Diakses";
         errorMessage = "Kamera tidak dapat diakses. Coba:\n• Tutup aplikasi lain yang menggunakan kamera\n• Restart browser\n• Periksa driver kamera\n• Gunakan browser yang berbeda";
       } else if (error.name === 'OverconstrainedError') {
-        errorMessage = "Kamera tidak mendukung konfigurasi yang diminta.";
+        errorTitle = "Konfigurasi Kamera Tidak Didukung";
+        errorMessage = "Kamera tidak mendukung konfigurasi yang diminta. Coba gunakan browser yang berbeda.";
       } else if (error.name === 'SecurityError') {
+        errorTitle = "Error Keamanan";
         errorMessage = "Akses kamera diblokir karena alasan keamanan. Pastikan menggunakan HTTPS.";
       }
       
       toast({
-        title: "Error Kamera",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive"
       });
@@ -454,16 +532,29 @@ export default function FaceRecognition({
         </div>
 
         {/* Controls */}
-        <div className="flex gap-2 justify-center">
+        <div className="flex gap-2 justify-center flex-wrap">
           {!isStreaming ? (
-            <Button 
-              onClick={startCamera} 
-              disabled={isLoading || !modelsLoaded}
-              className="flex items-center gap-2"
-            >
-              <Camera className="h-4 w-4" />
-              Mulai Kamera
-            </Button>
+            <>
+              <Button 
+                onClick={startCamera} 
+                disabled={isLoading || !modelsLoaded}
+                className="flex items-center gap-2"
+              >
+                <Camera className="h-4 w-4" />
+                Mulai Kamera
+              </Button>
+              
+              {!permissionRequested && (
+                <Button 
+                  onClick={requestCameraPermission}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Camera className="h-4 w-4" />
+                  Minta Izin Kamera
+                </Button>
+              )}
+            </>
           ) : (
             <Button 
               onClick={stopCamera} 
@@ -491,10 +582,67 @@ export default function FaceRecognition({
           )}
         </div>
 
+        {/* Error Display */}
+        {cameraError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 className="font-semibold text-red-800 mb-2">Error Kamera</h4>
+            <div className="text-sm text-red-700">
+              {cameraError === 'HTTPS_REQUIRED' && (
+                <p>Akses kamera memerlukan koneksi HTTPS. Silakan akses aplikasi melalui HTTPS atau gunakan localhost untuk development.</p>
+              )}
+              {cameraError === 'CAMERA_NOT_SUPPORTED' && (
+                <p>Browser Anda tidak mendukung akses kamera. Silakan gunakan browser modern seperti Chrome, Firefox, atau Safari.</p>
+              )}
+              {cameraError === 'PERMISSION_DENIED' && (
+                <div>
+                  <p>Izin kamera telah ditolak. Silakan:</p>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Klik ikon kamera di address bar</li>
+                    <li>Pilih 'Allow' untuk memberikan izin</li>
+                    <li>Refresh halaman</li>
+                  </ul>
+                </div>
+              )}
+              {cameraError === 'NotAllowedError' && (
+                <div>
+                  <p>Izin kamera ditolak. Silakan:</p>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Klik ikon kamera di address bar</li>
+                    <li>Pilih 'Allow' untuk memberikan izin</li>
+                    <li>Refresh halaman</li>
+                  </ul>
+                </div>
+              )}
+              {cameraError === 'NotFoundError' && (
+                <div>
+                  <p>Kamera tidak ditemukan. Pastikan:</p>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Kamera terhubung dengan benar</li>
+                    <li>Tidak ada aplikasi lain yang menggunakan kamera</li>
+                    <li>Driver kamera sudah terinstall</li>
+                  </ul>
+                </div>
+              )}
+              {cameraError === 'NotReadableError' && (
+                <div>
+                  <p>Kamera tidak dapat diakses. Coba:</p>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Tutup aplikasi lain yang menggunakan kamera</li>
+                    <li>Restart browser</li>
+                    <li>Periksa driver kamera</li>
+                    <li>Gunakan browser yang berbeda</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Status */}
         <div className="text-center text-sm text-muted-foreground">
           {!modelsLoaded && 'Model belum dimuat'}
-          {modelsLoaded && !isStreaming && 'Klik "Mulai Kamera" untuk memulai'}
+          {modelsLoaded && !isStreaming && !cameraError && 'Klik "Mulai Kamera" untuk memulai'}
+          {modelsLoaded && !isStreaming && cameraError && 'Perbaiki error kamera di atas'}
           {isStreaming && !lastDetection && 'Mencari wajah...'}
           {isStreaming && lastDetection && (
             <span className="text-green-600">

@@ -332,6 +332,60 @@ export default function FaceAttendancePage() {
             </div>
           </div>
 
+          {/* Camera Setup Instructions */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Panduan Setup Kamera</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold mb-3">Jika Kamera Tidak Bisa Dibuka:</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-start gap-2">
+                      <span className="bg-red-100 text-red-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">1</span>
+                      <p>Pastikan menggunakan HTTPS atau localhost</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="bg-red-100 text-red-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">2</span>
+                      <p>Klik ikon kamera di address bar dan pilih "Allow"</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="bg-red-100 text-red-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">3</span>
+                      <p>Tutup aplikasi lain yang menggunakan kamera</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="bg-red-100 text-red-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">4</span>
+                      <p>Gunakan browser modern (Chrome, Firefox, Safari)</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-3">Tips Penggunaan:</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                      <p>Posisikan wajah di tengah frame kamera</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                      <p>Pastikan pencahayaan cukup terang</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                      <p>Hindari bayangan pada wajah</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                      <p>Jangan menggunakan masker atau kacamata gelap</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Instructions */}
           <Card className="mt-6">
             <CardHeader>
