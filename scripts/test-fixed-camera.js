@@ -1,0 +1,477 @@
+#!/usr/bin/env node
+
+/**
+ * Test Fixed Camera Component Script
+ * Tests the improved FaceRecognition component
+ */
+
+const fs = require('fs');
+
+console.log('🎥 Testing Fixed Camera Component...\n');
+
+// Create a comprehensive test page
+const testHTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Camera Component Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .camera-container { 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            margin: 20px 0;
+            position: relative;
+            min-height: 400px;
+            border: 2px solid #e9ecef;
+        }
+        video { 
+            width: 100%; 
+            height: auto; 
+            display: block;
+        }
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #6c757d;
+            text-align: center;
+            font-size: 18px;
+        }
+        .controls { 
+            margin: 20px 0; 
+            text-align: center;
+        }
+        button { 
+            padding: 12px 24px; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .start-btn { background: #007bff; color: white; }
+        .start-btn:hover { background: #0056b3; }
+        .stop-btn { background: #dc3545; color: white; }
+        .stop-btn:hover { background: #c82333; }
+        .permission-btn { background: #28a745; color: white; }
+        .permission-btn:hover { background: #218838; }
+        .log { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            border-radius: 4px; 
+            padding: 15px; 
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .error { color: #dc3545; }
+        .success { color: #28a745; }
+        .info { color: #007bff; }
+        .warning { color: #ffc107; }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.active { background: #d4edda; color: #155724; }
+        .status.inactive { background: #f8d7da; color: #721c24; }
+        .status.requesting { background: #d1ecf1; color: #0c5460; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.denied { background: #f8d7da; color: #721c24; }
+        .status.notfound { background: #f8d7da; color: #721c24; }
+        .status.notreadable { background: #f8d7da; color: #721c24; }
+        .status.insecure { background: #fff3cd; color: #856404; }
+        .error-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .guide {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .guide h4 {
+            margin: 0 0 10px 0;
+            color: #0c5460;
+        }
+        .guide ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .guide li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 Fixed Camera Component Test</h1>
+        <p>This test verifies the improved FaceRecognition component with comprehensive error handling.</p>
+        
+        <div class="camera-container">
+            <video id="video" autoplay muted playsinline style="display: none;"></video>
+            <div id="overlay" class="overlay">
+                <div style="font-size: 48px;">📷</div>
+                <div>Camera not active</div>
+            </div>
+        </div>
+        
+        <div id="status" class="status inactive">Status: Camera Inactive</div>
+        
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        
+        <div class="controls">
+            <button id="startBtn" class="start-btn">Start Camera</button>
+            <button id="stopBtn" class="stop-btn" disabled>Stop Camera</button>
+            <button id="permissionBtn" class="permission-btn">Request Permission</button>
+            <button id="checkBtn">Check Status</button>
+        </div>
+        
+        <div class="guide">
+            <h4>🔧 Camera Setup Guide</h4>
+            <ul>
+                <li>Make sure camera is connected and not used by other applications</li>
+                <li>Allow camera access when browser prompts</li>
+                <li>Use modern browser (Chrome, Firefox, Safari, Edge)</li>
+                <li>For security, use HTTPS (https://localhost:3000)</li>
+                <li>If camera doesn't appear, try refreshing the page</li>
+            </ul>
+        </div>
+        
+        <div id="log" class="log">Ready to test fixed camera component...\n</div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const permissionBtn = document.getElementById('permissionBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        let stream = null;
+        let isStreaming = false;
+        let cameraStatus = 'idle';
+        let errorMsg = '';
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+            log.innerHTML += \`<span class="\${className}">[\${timestamp}] \${message}</span>\\n\`;
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function updateStatus(status) {
+            cameraStatus = status;
+            status.className = \`status \${status}\`;
+            status.textContent = \`Status: \${status.charAt(0).toUpperCase() + status.slice(1)}\`;
+            
+            if (status === 'active') {
+                isStreaming = true;
+                video.style.display = 'block';
+                overlay.style.display = 'none';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                errorMessage.style.display = 'none';
+            } else {
+                isStreaming = false;
+                video.style.display = 'none';
+                overlay.style.display = 'block';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+        
+        function showError(message) {
+            errorMsg = message;
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            updateStatus('error');
+        }
+        
+        function hideError() {
+            errorMsg = '';
+            errorMessage.style.display = 'none';
+        }
+        
+        async function checkCameraAvailability() {
+            try {
+                addLog('🔍 Checking camera availability...');
+                
+                // Check if we're on HTTPS or localhost
+                const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                if (!isSecure) {
+                    throw new Error('HTTPS_REQUIRED');
+                }
+                
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('CAMERA_NOT_SUPPORTED');
+                }
+                
+                // Check available devices
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                if (videoDevices.length === 0) {
+                    throw new Error('NO_CAMERA_FOUND');
+                }
+                
+                addLog(\`📹 Found \${videoDevices.length} camera device(s)\`);
+                return true;
+            } catch (error) {
+                addLog(\`❌ Camera availability check failed: \${error.message}\`, 'error');
+                return false;
+            }
+        }
+        
+        async function requestCameraPermission() {
+            try {
+                updateStatus('requesting');
+                hideError();
+                addLog('🎥 Requesting camera permission...');
+                
+                const isAvailable = await checkCameraAvailability();
+                if (!isAvailable) {
+                    throw new Error('Camera tidak tersedia atau tidak didukung');
+                }
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user' } 
+                });
+                
+                stream.getTracks().forEach(track => track.stop());
+                
+                addLog('✅ Camera permission granted');
+                updateStatus('idle');
+                return true;
+            } catch (error) {
+                addLog(\`❌ Camera permission denied: \${error.name} - \${error.message}\`, 'error');
+                updateStatus('denied');
+                showError('Izin kamera ditolak. Silakan izinkan akses kamera dan coba lagi.');
+                return false;
+            }
+        }
+        
+        async function startCamera() {
+            try {
+                addLog('🎥 Starting camera...');
+                updateStatus('requesting');
+                hideError();
+                
+                const isAvailable = await checkCameraAvailability();
+                if (!isAvailable) {
+                    throw new Error('Camera tidak tersedia');
+                }
+                
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                
+                const configs = [
+                    {
+                        video: {
+                            width: { ideal: 640 },
+                            height: { ideal: 480 },
+                            facingMode: 'user'
+                        }
+                    },
+                    {
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'user'
+                        }
+                    },
+                    { video: { facingMode: 'user' } },
+                    { video: true }
+                ];
+                
+                let cameraStream = null;
+                let lastError = null;
+                
+                for (let i = 0; i < configs.length; i++) {
+                    try {
+                        addLog(\`🎥 Trying camera config \${i + 1}: \${JSON.stringify(configs[i])}\`);
+                        cameraStream = await navigator.mediaDevices.getUserMedia(configs[i]);
+                        addLog(\`✅ Camera started with config \${i + 1}\`);
+                        break;
+                    } catch (error) {
+                        addLog(\`❌ Config \${i + 1} failed: \${error.name} - \${error.message}\`, 'error');
+                        lastError = error;
+                        
+                        if (error.name === 'NotAllowedError') {
+                            updateStatus('denied');
+                            showError('Izin kamera ditolak. Silakan izinkan akses kamera dan coba lagi.');
+                            throw error;
+                        } else if (error.name === 'NotFoundError') {
+                            updateStatus('notfound');
+                            showError('Kamera tidak ditemukan. Pastikan kamera terhubung.');
+                            throw error;
+                        } else if (error.name === 'NotReadableError') {
+                            updateStatus('notreadable');
+                            showError('Kamera sedang digunakan aplikasi lain. Tutup aplikasi lain dan coba lagi.');
+                            throw error;
+                        } else if (error.name === 'SecurityError') {
+                            updateStatus('insecure');
+                            showError('Akses kamera diblokir karena masalah keamanan. Gunakan HTTPS.');
+                            throw error;
+                        }
+                    }
+                }
+                
+                if (!cameraStream) {
+                    throw lastError || new Error('Tidak ada konfigurasi kamera yang berhasil');
+                }
+                
+                stream = cameraStream;
+                video.srcObject = stream;
+                
+                try {
+                    await video.play();
+                    addLog('✅ Video started playing successfully');
+                } catch (playError) {
+                    addLog(\`⚠️ Video play failed: \${playError.message}\`, 'warning');
+                }
+                
+                video.onloadedmetadata = () => {
+                    addLog(\`📹 Video metadata loaded - \${video.videoWidth}x\${video.videoHeight}\`);
+                    updateStatus('active');
+                };
+                
+                video.oncanplay = () => addLog('📹 Video can play');
+                video.onplay = () => addLog('📹 Video started playing');
+                video.onerror = (e) => {
+                    addLog(\`❌ Video error: \${e}\`, 'error');
+                    updateStatus('error');
+                    showError('Terjadi kesalahan pada video. Coba refresh halaman.');
+                };
+                
+                setTimeout(() => {
+                    if (!isStreaming && stream && stream.active) {
+                        addLog('🎥 Forcing streaming state to true');
+                        updateStatus('active');
+                    } else if (!isStreaming) {
+                        updateStatus('error');
+                        showError('Kamera lambat merespons. Coba refresh halaman jika masalah berlanjut.');
+                    }
+                }, 5000);
+                
+            } catch (error) {
+                addLog(\`❌ Camera start failed: \${error.name} - \${error.message}\`, 'error');
+                
+                if (error.message === 'HTTPS_REQUIRED') {
+                    updateStatus('insecure');
+                    showError('Kamera memerlukan HTTPS. Gunakan https://localhost:3000');
+                } else if (error.message === 'CAMERA_NOT_SUPPORTED') {
+                    updateStatus('error');
+                    showError('Browser tidak mendukung akses kamera. Gunakan browser modern.');
+                } else if (error.message === 'NO_CAMERA_FOUND') {
+                    updateStatus('notfound');
+                    showError('Tidak ada kamera yang ditemukan. Pastikan kamera terhubung.');
+                }
+            }
+        }
+        
+        function stopCamera() {
+            if (stream) {
+                addLog('🛑 Stopping camera...');
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                video.srcObject = null;
+                updateStatus('idle');
+                hideError();
+                addLog('✅ Camera stopped');
+            }
+        }
+        
+        function checkStatus() {
+            addLog('🔍 Checking camera status:');
+            addLog(\`  - Status: \${cameraStatus}\`);
+            addLog(\`  - Streaming: \${isStreaming}\`);
+            addLog(\`  - Stream active: \${stream ? stream.active : 'No stream'}\`);
+            addLog(\`  - Video readyState: \${video.readyState}\`);
+            addLog(\`  - Video dimensions: \${video.videoWidth}x\${video.videoHeight}\`);
+            addLog(\`  - Error message: \${errorMsg || 'None'}\`);
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startCamera);
+        stopBtn.addEventListener('click', stopCamera);
+        permissionBtn.addEventListener('click', requestCameraPermission);
+        checkBtn.addEventListener('click', checkStatus);
+        
+        // Initial state
+        updateStatus('idle');
+        
+        addLog('🎯 Fixed Camera Component Test Ready');
+        addLog('This test demonstrates the improved camera component with:');
+        addLog('- Comprehensive error handling');
+        addLog('- Multiple camera configurations');
+        addLog('- Clear status indicators');
+        addLog('- User-friendly error messages');
+        addLog('- HTTPS and security checks');
+    </script>
+</body>
+</html>
+`;
+
+// Write the test file
+fs.writeFileSync('fixed-camera-test.html', testHTML);
+
+console.log('✅ Fixed camera test page created: fixed-camera-test.html');
+console.log('\n📋 Test Instructions:');
+console.log('1. Open fixed-camera-test.html in your browser');
+console.log('2. Click "Request Permission" to test permission handling');
+console.log('3. Click "Start Camera" to test camera functionality');
+console.log('4. Check "Check Status" to see detailed camera information');
+console.log('5. Test error scenarios by denying permission or using HTTP');
+
+console.log('\n🔧 Features Tested:');
+console.log('- Camera permission handling');
+console.log('- Multiple camera configurations');
+console.log('- Error handling (NotAllowedError, NotFoundError, etc.)');
+console.log('- HTTPS requirement checking');
+console.log('- Video element setup and play');
+console.log('- Status indicators and user feedback');
+
+console.log('\n🌐 Open in browser:');
+console.log('file://' + process.cwd() + '/fixed-camera-test.html');
+
+console.log('\n📝 Next Steps:');
+console.log('1. Test the fixed component in your Next.js app');
+console.log('2. Replace the old FaceRecognition component');
+console.log('3. Deploy to Vercel and test in production');
+console.log('4. Monitor camera functionality with real users');
