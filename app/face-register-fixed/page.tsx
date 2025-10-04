@@ -18,27 +18,27 @@ interface User {
 }
 
 export default function FaceRegisterFixedPage() {
-  // Demo user untuk testing tanpa login
-  const [user, setUser] = useState<User | null>({
-    id: 'demo-user',
-    nama: 'Demo User',
-    role: 'siswa',
-    nisn: '1234567890',
-    has_face: false
-  });
+  // No demo user - direct registration without login
+  const [user, setUser] = useState<User | null>(null);
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
   const handleFaceRegistered = async (faceEmbedding: number[]) => {
-    if (!user) return;
-
     try {
-      console.log('👤 Face registration successful:', { userId: user.id, embeddingLength: faceEmbedding.length });
+      console.log('👤 Face registration successful:', { embeddingLength: faceEmbedding.length });
       
-      // Simulate successful registration
+      // Create user data after successful registration
+      const newUser: User = {
+        id: `user-${Date.now()}`,
+        nama: 'User Terdaftar',
+        role: 'siswa',
+        nisn: 'AUTO-' + Date.now().toString().slice(-6),
+        has_face: true
+      };
+      
+      setUser(newUser);
       setRegistrationComplete(true);
-      setUser(prev => prev ? { ...prev, has_face: true } : null);
       
       toast({
         title: "Berhasil!",
@@ -59,13 +59,23 @@ export default function FaceRegisterFixedPage() {
     try {
       console.log('📝 Auto attendance for user:', userId);
       
-      // Simulate attendance marking
+      // Create attendance record
       const attendanceData = {
+        id: `attendance-${Date.now()}`,
         userId,
         status: 'hadir',
         waktu: new Date().toISOString(),
-        method: 'face_recognition_auto'
+        method: 'face_recognition_auto',
+        user: {
+          nama: 'User Terdaftar',
+          role: 'siswa'
+        }
       };
+      
+      // Save to localStorage
+      const existingAttendance = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+      const updatedAttendance = [attendanceData, ...existingAttendance.slice(0, 9)];
+      localStorage.setItem('attendanceRecords', JSON.stringify(updatedAttendance));
       
       console.log('✅ Auto attendance recorded:', attendanceData);
       
@@ -148,25 +158,27 @@ export default function FaceRegisterFixedPage() {
             </p>
           </div>
 
-          {/* User Info */}
-          <Card className="mb-6">
-            <CardContent className="flex items-center p-6">
-              <User className="h-8 w-8 text-blue-600 mr-4" />
-              <div>
-                <h3 className="font-semibold">{user?.nama || 'Demo User'}</h3>
-                <p className="text-sm text-gray-600 capitalize">
-                  {user?.role || 'siswa'} • {user?.nisn || user?.identitas || '1234567890'}
-                </p>
-                <p className="text-sm">
-                  Status: {user?.has_face ? (
-                    <span className="text-green-600">Wajah sudah terdaftar</span>
-                  ) : (
-                    <span className="text-yellow-600">Wajah belum terdaftar</span>
-                  )}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* User Info - Only show after registration */}
+          {user && (
+            <Card className="mb-6">
+              <CardContent className="flex items-center p-6">
+                <User className="h-8 w-8 text-blue-600 mr-4" />
+                <div>
+                  <h3 className="font-semibold">{user.nama}</h3>
+                  <p className="text-sm text-gray-600 capitalize">
+                    {user.role} • {user.nisn || user.identitas}
+                  </p>
+                  <p className="text-sm">
+                    Status: {user.has_face ? (
+                      <span className="text-green-600">Wajah sudah terdaftar</span>
+                    ) : (
+                      <span className="text-yellow-600">Wajah belum terdaftar</span>
+                    )}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Face Registration Component */}
           <FaceRecognitionFixed

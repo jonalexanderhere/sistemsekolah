@@ -45,28 +45,19 @@ export default function FaceAttendancePage() {
 
   const loadKnownFaces = async () => {
     try {
-      // For demo purposes, create some dummy known faces
-      const demoFaces: KnownFace[] = [
-        {
-          id: 'demo-user-1',
-          descriptor: [],
-          label: 'Demo User 1 (Siswa)'
-        },
-        {
-          id: 'demo-user-2', 
-          descriptor: [],
-          label: 'Demo User 2 (Guru)'
-        }
-      ];
-      
-      setKnownFaces(demoFaces);
-      console.log('📊 Loaded demo known faces:', demoFaces);
+      // Load from localStorage or create empty array
+      const storedFaces = localStorage.getItem('registeredFaces');
+      if (storedFaces) {
+        const faces = JSON.parse(storedFaces);
+        setKnownFaces(faces);
+        console.log('📊 Loaded registered faces from storage:', faces);
+      } else {
+        setKnownFaces([]);
+        console.log('📊 No registered faces found');
+      }
     } catch (error) {
       console.error('Error loading known faces:', error);
-      toast({
-        title: "Info",
-        description: "Menggunakan mode demo - tidak ada wajah terdaftar",
-      });
+      setKnownFaces([]);
     } finally {
       setIsLoading(false);
     }
@@ -74,32 +65,19 @@ export default function FaceAttendancePage() {
 
   const loadRecentAttendance = async () => {
     try {
-      // For demo purposes, create some dummy attendance records
-      const demoAttendance: AttendanceRecord[] = [
-        {
-          id: 'demo-1',
-          status: 'hadir',
-          waktu: new Date().toISOString(),
-          user: {
-            nama: 'Demo User 1',
-            role: 'siswa'
-          }
-        },
-        {
-          id: 'demo-2',
-          status: 'terlambat',
-          waktu: new Date(Date.now() - 3600000).toISOString(),
-          user: {
-            nama: 'Demo User 2',
-            role: 'guru'
-          }
-        }
-      ];
-      
-      setRecentAttendance(demoAttendance);
-      console.log('📊 Loaded demo attendance:', demoAttendance);
+      // Load from localStorage or create empty array
+      const storedAttendance = localStorage.getItem('attendanceRecords');
+      if (storedAttendance) {
+        const attendance = JSON.parse(storedAttendance);
+        setRecentAttendance(attendance);
+        console.log('📊 Loaded attendance from storage:', attendance);
+      } else {
+        setRecentAttendance([]);
+        console.log('📊 No attendance records found');
+      }
     } catch (error) {
       console.error('Error loading recent attendance:', error);
+      setRecentAttendance([]);
     }
   };
 
@@ -114,34 +92,39 @@ export default function FaceAttendancePage() {
     try {
       console.log('👤 Face recognized:', { userId, confidence });
       
-      // For demo purposes, create a demo user
-      const demoUser = {
-        nama: `Demo User ${userId}`,
-        role: 'siswa'
-      };
+      // Get user info from known faces
+      const recognizedFace = knownFaces.find(face => face.id === userId);
+      const userName = recognizedFace ? recognizedFace.label : 'User Terdaftar';
       
       setLastRecognition({
         userId,
-        nama: demoUser.nama,
+        nama: userName,
         confidence,
         timestamp: new Date()
       });
 
-      // Simulate attendance marking
+      // Mark attendance
       toast({
         title: "Absensi Berhasil!",
-        description: `${demoUser.nama} - Hadir (Demo Mode)`,
+        description: `${userName} - Hadir`,
       });
       
-      // Add to recent attendance
+      // Add to recent attendance and save to localStorage
       const newAttendance: AttendanceRecord = {
-        id: `demo-${Date.now()}`,
+        id: `attendance-${Date.now()}`,
         status: 'hadir',
         waktu: new Date().toISOString(),
-        user: demoUser
+        user: {
+          nama: userName,
+          role: 'siswa'
+        }
       };
       
-      setRecentAttendance(prev => [newAttendance, ...prev.slice(0, 9)]);
+      const updatedAttendance = [newAttendance, ...recentAttendance.slice(0, 9)];
+      setRecentAttendance(updatedAttendance);
+      
+      // Save to localStorage
+      localStorage.setItem('attendanceRecords', JSON.stringify(updatedAttendance));
       
     } catch (error) {
       console.error('Error processing face recognition:', error);

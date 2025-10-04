@@ -457,10 +457,22 @@ export default function FaceRecognitionFixed({
             onFaceRegistered(descriptorArray);
           }
           
+          // Save face descriptor to localStorage
+          const faceData = {
+            id: `user-${Date.now()}`,
+            descriptor: descriptorArray,
+            label: 'User Terdaftar'
+          };
+          
+          // Load existing faces and add new one
+          const existingFaces = JSON.parse(localStorage.getItem('registeredFaces') || '[]');
+          const updatedFaces = [...existingFaces, faceData];
+          localStorage.setItem('registeredFaces', JSON.stringify(updatedFaces));
+          
           // Auto mark attendance after registration
           if (onAutoAttendance) {
             console.log('📝 Auto marking attendance after registration...');
-            onAutoAttendance('demo-user');
+            onAutoAttendance(faceData.id);
             setAttendanceMarked(true);
             
             toast({
