@@ -276,7 +276,9 @@ export default function FaceRecognition({
         
         videoRef.current.onloadedmetadata = () => {
           console.log('🎥 Video metadata loaded');
-          console.log('🎥 Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+          if (videoRef.current) {
+            console.log('🎥 Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+          }
           setIsStreaming(true);
           setIsLoading(false);
           
@@ -316,9 +318,11 @@ export default function FaceRecognition({
           if (!isStreaming && streamRef.current) {
             console.warn('🎥 Video metadata loading timeout');
             console.log('🎥 Stream active:', streamRef.current.active);
-            console.log('🎥 Video ready state:', videoRef.current?.readyState);
-            console.log('🎥 Video paused:', videoRef.current?.paused);
-            console.log('🎥 Video current time:', videoRef.current?.currentTime);
+            if (videoRef.current) {
+              console.log('🎥 Video ready state:', videoRef.current.readyState);
+              console.log('🎥 Video paused:', videoRef.current.paused);
+              console.log('🎥 Video current time:', videoRef.current.currentTime);
+            }
             
             // Force set streaming if stream is active
             if (streamRef.current.active) {
