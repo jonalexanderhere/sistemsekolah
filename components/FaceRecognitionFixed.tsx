@@ -454,7 +454,9 @@ export default function FaceRecognitionFixed({
               const faceDescriptor = await getFaceDescriptor(videoRef.current, detection);
               
               if (faceDescriptor && onFaceRegistered) {
-                onFaceRegistered(faceDescriptor);
+                // Convert Float32Array to number array
+                const descriptorArray = Array.from(faceDescriptor);
+                onFaceRegistered(descriptorArray);
               }
             }
           } else if (mode === 'recognize' && knownFaces.length > 0) {
@@ -463,7 +465,9 @@ export default function FaceRecognitionFixed({
               const faceDescriptor = await getFaceDescriptor(videoRef.current, detection);
               
               if (faceDescriptor) {
-                const match = findBestFaceMatch(faceDescriptor, knownFaces);
+                // Convert Float32Array to number array for matching
+                const descriptorArray = Array.from(faceDescriptor);
+                const match = findBestFaceMatch(descriptorArray, knownFaces);
                 
                 if (match && onFaceRecognized) {
                   onFaceRecognized(match.id, match.distance);
