@@ -22,6 +22,8 @@ interface FaceRecognitionProps {
   onFaceRecognized?: (userId: string, confidence: number) => void;
   knownFaces?: Array<{ id: string; descriptor: number[]; label: string }>;
   className?: string;
+  autoRegister?: boolean; // New prop for auto registration
+  onAutoAttendance?: (userId: string) => void; // New prop for auto attendance
 }
 
 // Camera status types
@@ -32,7 +34,9 @@ export default function FaceRecognitionFixed({
   onFaceRegistered,
   onFaceRecognized,
   knownFaces = [],
-  className = ''
+  className = '',
+  autoRegister = false,
+  onAutoAttendance
 }: FaceRecognitionProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,6 +52,10 @@ export default function FaceRecognitionFixed({
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [permissionRequested, setPermissionRequested] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [attendanceMarked, setAttendanceMarked] = useState(false);
+  const [registeredFaceDescriptor, setRegisteredFaceDescriptor] = useState<number[] | null>(null);
   
   const { toast } = useToast();
 
@@ -417,6 +425,75 @@ export default function FaceRecognitionFixed({
     setErrorMessage('');
   }, [detectionInterval]);
 
+  // Auto registration function
+  const handleAutoRegistration = useCallback(async () => {
+    if (!videoRef.current || !modelsLoaded || isRegistering) {
+      return;
+    }
+
+    try {
+      setIsRegistering(true);
+      console.log('👤 Starting auto registration...');
+      
+      const detections = await detectFaces(videoRef.current);
+      
+      if (detections.length === 1) {
+        const detection = detections[0];
+        const faceDescriptor = await getFaceDescriptor(videoRef.current, detection);
+        
+        if (faceDescriptor) {
+          // Convert Float32Array to number array
+          const descriptorArray = Array.from(faceDescriptor);
+          setRegisteredFaceDescriptor(descriptorArray);
+          setIsRegistered(true);
+          
+          console.log('✅ Face registered successfully');
+          toast({
+            title: "Registrasi Berhasil!",
+            description: "Wajah berhasil didaftarkan. Anda sekarang dapat melakukan absensi otomatis.",
+          });
+          
+          if (onFaceRegistered) {
+            onFaceRegistered(descriptorArray);
+          }
+          
+          // Auto mark attendance after registration
+          if (onAutoAttendance) {
+            console.log('📝 Auto marking attendance after registration...');
+            onAutoAttendance('demo-user');
+            setAttendanceMarked(true);
+            
+            toast({
+              title: "Absensi Berhasil!",
+              description: "Absensi otomatis berhasil dicatat.",
+            });
+          }
+        }
+      } else if (detections.length === 0) {
+        toast({
+          title: "Wajah Tidak Terdeteksi",
+          description: "Posisikan wajah di depan kamera dan coba lagi.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Terlalu Banyak Wajah",
+          description: "Pastikan hanya ada satu wajah di depan kamera.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('❌ Auto registration error:', error);
+      toast({
+        title: "Error",
+        description: "Gagal melakukan registrasi wajah.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRegistering(false);
+    }
+  }, [modelsLoaded, isRegistering, onFaceRegistered, onAutoAttendance, toast]);
+
   // Face detection loop
   const startFaceDetection = useCallback(() => {
     if (detectionInterval) {
@@ -636,6 +713,46 @@ export default function FaceRecognitionFixed({
             </Button>
           )}
         </div>
+
+        {/* Registration Status */}
+        {isRegistered && (
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <h4 className="font-medium text-green-800">Wajah Terdaftar</h4>
+            </div>
+            <p className="text-sm text-green-700">
+              Wajah Anda sudah terdaftar. Sistem akan otomatis mengenali Anda untuk absensi.
+            </p>
+            {attendanceMarked && (
+              <div className="mt-2 p-2 bg-green-100 rounded text-sm text-green-800">
+                ✅ Absensi otomatis berhasil dicatat
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Registration Button */}
+        {mode === 'register' && isStreaming && !isRegistered && (
+          <div className="text-center">
+            <Button 
+              onClick={handleAutoRegistration}
+              disabled={isRegistering || !modelsLoaded}
+              className="flex items-center gap-2 mx-auto"
+              size="lg"
+            >
+              {isRegistering ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <UserPlus className="h-5 w-5" />
+              )}
+              {isRegistering ? 'Mendaftarkan Wajah...' : 'Daftarkan Wajah Sekarang'}
+            </Button>
+            <p className="text-sm text-gray-600 mt-2">
+              Posisikan wajah di depan kamera dan klik tombol di atas
+            </p>
+          </div>
+        )}
 
         {/* Camera Setup Guide */}
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">

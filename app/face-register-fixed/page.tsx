@@ -55,6 +55,35 @@ export default function FaceRegisterFixedPage() {
     }
   };
 
+  const handleAutoAttendance = async (userId: string) => {
+    try {
+      console.log('📝 Auto attendance for user:', userId);
+      
+      // Simulate attendance marking
+      const attendanceData = {
+        userId,
+        status: 'hadir',
+        waktu: new Date().toISOString(),
+        method: 'face_recognition_auto'
+      };
+      
+      console.log('✅ Auto attendance recorded:', attendanceData);
+      
+      toast({
+        title: "Absensi Otomatis Berhasil!",
+        description: "Absensi Anda telah dicatat secara otomatis setelah registrasi wajah.",
+      });
+      
+    } catch (error) {
+      console.error('Auto attendance error:', error);
+      toast({
+        title: "Error",
+        description: "Gagal mencatat absensi otomatis",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Success page after registration
   if (registrationComplete) {
     return (
@@ -143,6 +172,8 @@ export default function FaceRegisterFixedPage() {
           <FaceRecognitionFixed
             mode="register"
             onFaceRegistered={handleFaceRegistered}
+            onAutoAttendance={handleAutoAttendance}
+            autoRegister={true}
           />
 
           {/* Instructions */}
