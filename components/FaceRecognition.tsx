@@ -246,9 +246,23 @@ export default function FaceRecognition({
 
       console.log('🎥 Setting up video element...');
       if (videoRef.current) {
+        // Clear any existing stream first
+        if (videoRef.current.srcObject) {
+          console.log('🎥 Clearing existing stream');
+          videoRef.current.srcObject = null;
+        }
+        
+        // Set new stream
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
-        console.log('🎥 Video element configured');
+        console.log('🎥 Video element configured with stream:', stream);
+        
+        // Force video to play
+        videoRef.current.play().then(() => {
+          console.log('🎥 Video started playing successfully');
+        }).catch((error) => {
+          console.error('🎥 Video play failed:', error);
+        });
         
         // Add error handling for video element
         videoRef.current.onerror = (e) => {
@@ -262,6 +276,7 @@ export default function FaceRecognition({
         
         videoRef.current.onloadedmetadata = () => {
           console.log('🎥 Video metadata loaded');
+          console.log('🎥 Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
           setIsStreaming(true);
           setIsLoading(false);
           
@@ -284,18 +299,42 @@ export default function FaceRecognition({
           console.log('🎥 Video started playing');
         };
 
+        videoRef.current.onloadstart = () => {
+          console.log('🎥 Video load started');
+        };
+
+        videoRef.current.onloadeddata = () => {
+          console.log('🎥 Video data loaded');
+        };
+
+        videoRef.current.onprogress = () => {
+          console.log('🎥 Video loading progress');
+        };
+
         // Set a timeout to handle cases where metadata never loads
         setTimeout(() => {
           if (!isStreaming && streamRef.current) {
-            console.warn('Video metadata loading timeout');
-            setIsLoading(false);
-            toast({
-              title: "Warning",
-              description: "Kamera lambat merespons. Coba refresh halaman jika masalah berlanjut.",
-              variant: "destructive"
-            });
+            console.warn('🎥 Video metadata loading timeout');
+            console.log('🎥 Stream active:', streamRef.current.active);
+            console.log('🎥 Video ready state:', videoRef.current?.readyState);
+            console.log('🎥 Video paused:', videoRef.current?.paused);
+            console.log('🎥 Video current time:', videoRef.current?.currentTime);
+            
+            // Force set streaming if stream is active
+            if (streamRef.current.active) {
+              console.log('🎥 Forcing streaming state to true');
+              setIsStreaming(true);
+              setIsLoading(false);
+            } else {
+              setIsLoading(false);
+              toast({
+                title: "Warning",
+                description: "Kamera lambat merespons. Coba refresh halaman jika masalah berlanjut.",
+                variant: "destructive"
+              });
+            }
           }
-        }, 10000);
+        }, 5000); // Reduced timeout to 5 seconds
       }
     } catch (error: any) {
       console.error('Error starting camera:', error);
@@ -559,11 +598,18 @@ export default function FaceRecognition({
           />
           
           {!isStreaming && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
               <div className="text-center text-white">
                 <Camera className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Kamera belum aktif</p>
               </div>
+            </div>
+          )}
+          
+          {/* Debug info */}
+          {isStreaming && (
+            <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs z-20">
+              Camera Active
             </div>
           )}
         </div>
