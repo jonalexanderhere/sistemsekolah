@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import FaceRecognition from '@/components/FaceRecognition';
+import FaceRecognitionFixed from '@/components/FaceRecognitionFixed';
 import { ArrowLeft, Clock, CheckCircle, Users, Calendar } from 'lucide-react';
 
 interface KnownFace {
@@ -159,7 +159,7 @@ export default function FaceAttendancePage() {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Face Recognition */}
             <div className="lg:col-span-2">
-              <FaceRecognition
+              <FaceRecognitionFixed
                 mode="recognize"
                 onFaceRecognized={handleFaceRecognized}
                 knownFaces={knownFaces}
