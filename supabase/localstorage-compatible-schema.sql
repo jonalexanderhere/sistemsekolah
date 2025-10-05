@@ -812,12 +812,10 @@ VALUES (
     '1'
 ) ON CONFLICT DO NOTHING;
 
--- Insert default classes
+-- Insert TJKT 2 class only (all students are in XII TJKT 2)
 INSERT INTO classes (name, grade_level, academic_year, semester, description)
 VALUES
-    ('XII TJKT 2', 'XII', '2024-2025', '1', 'Kelas XII Teknik Jaringan Komputer dan Telekomunikasi 2'),
-    ('XII IPA 1', 'XII', '2024-2025', '1', 'Kelas XII Ilmu Pengetahuan Alam 1'),
-    ('XII IPS 1', 'XII', '2024-2025', '1', 'Kelas XII Ilmu Pengetahuan Sosial 1')
+    ('XII TJKT 2', 'XII', '2024-2025', '1', 'Kelas XII Teknik Jaringan Komputer dan Telekomunikasi 2 - Sekolah TJKT 2')
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================================

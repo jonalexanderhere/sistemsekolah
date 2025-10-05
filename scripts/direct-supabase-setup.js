@@ -209,7 +209,7 @@ async function insertUsers() {
                         .replace(/\s+/g, '.')
                     }@sisfotjkt2.com`,
                     external_auth_id: `student-${nisn}`,
-                    class_name: 'X IPA 1',
+                    class_name: 'XII TJKT 2',
                     is_active: true
                 }, { onConflict: 'nisn' });
             

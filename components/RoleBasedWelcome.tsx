@@ -217,7 +217,7 @@ export default function RoleBasedWelcome({ user }: RoleBasedWelcomeProps) {
             {user.class_name && (
               <div>
                 <span className="font-medium text-gray-600">Class:</span>
-                <span className="ml-2">{user.class_name}</span>
+                <span className="ml-2 font-semibold text-blue-600">{user.class_name}</span>
               </div>
             )}
           </div>
@@ -335,7 +335,9 @@ export default function RoleBasedWelcome({ user }: RoleBasedWelcomeProps) {
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <Award className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                 <p className="font-medium">Class Information</p>
-                <p className="text-sm text-gray-600">{user.class_name || 'Not Assigned'}</p>
+                <p className="text-sm text-gray-600 font-semibold text-blue-600">
+                  {user.class_name === 'XII TJKT 2' ? '✅ XII TJKT 2' : user.class_name || 'Not Assigned'}
+                </p>
               </div>
             </div>
           </CardContent>

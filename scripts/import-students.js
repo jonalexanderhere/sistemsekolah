@@ -12,19 +12,15 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Available class options for all grade levels
-const availableClasses = [
-    // Grade X (10th)
-    'X IPA 1', 'X IPA 2', 'X IPS 1', 'X IPS 2', 'X TJKT 1', 'X TJKT 2', 'X TJKT 3',
-    // Grade XI (11th)  
-    'XI IPA 1', 'XI IPA 2', 'XI IPS 1', 'XI IPS 2', 'XI TJKT 1', 'XI TJKT 2', 'XI TJKT 3',
-    // Grade XII (12th)
-    'XII IPA 1', 'XII IPA 2', 'XII IPS 1', 'XII IPS 2', 'XII TJKT 1', 'XII TJKT 2', 'XII TJKT 3'
-];
+// TJKT 2 School - All students are in XII TJKT 2
+const TJKT2_CLASS = 'XII TJKT 2';
 
-// Function to get random class assignment
+// TJKT 2 School - All students are in XII TJKT 2
+console.log('🏫 TJKT 2 School: All students will be assigned to XII TJKT 2');
+
+// Function to get class assignment (always XII TJKT 2)
 function getRandomClass() {
-    return availableClasses[Math.floor(Math.random() * availableClasses.length)];
+    return TJKT2_CLASS;
 }
 
 // Teacher data from previous system
@@ -297,7 +293,7 @@ async function assignStudentsToClass() {
         const { data: defaultClass, error: classError } = await supabase
             .from('classes')
             .select('id')
-            .eq('name', 'X IPA 1')
+            .eq('name', TJKT2_CLASS)
             .single();
         
         if (classError) {
@@ -334,7 +330,7 @@ async function assignStudentsToClass() {
         if (assignError) {
             console.warn('⚠️  Some class assignments may have failed:', assignError.message);
         } else {
-            console.log(`✅ Assigned ${students.length} students to class "X IPA 1"`);
+            console.log(`✅ Assigned ${students.length} students to class "${TJKT2_CLASS}"`);
         }
         
     } catch (error) {
