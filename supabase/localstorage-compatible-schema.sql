@@ -1,6 +1,6 @@
 -- ============================================================================
--- SISFOTJKT2 - Production Ready Database Schema
--- Face Recognition Attendance System for Educational Institutions
+-- SISFOTJKT2 - LocalStorage Compatible Database Schema
+-- Optimized for applications using localStorage for session management
 -- ============================================================================
 
 -- Enable necessary extensions
@@ -309,7 +309,7 @@ CREATE TABLE questions (
     -- Question Content
     question_text TEXT NOT NULL,
     question_type TEXT NOT NULL CHECK (question_type IN ('multiple_choice', 'true_false', 'short_answer', 'essay')),
-    options JSONB, -- For multiple choice options
+    options JSONB,
 
     -- Question Settings
     points DECIMAL(5,2) DEFAULT 1.00,
@@ -478,8 +478,8 @@ CREATE TABLE notifications (
     type TEXT DEFAULT 'info' CHECK (type IN ('info', 'success', 'warning', 'error', 'exam', 'attendance', 'grade')),
 
     -- Related Data
-    related_id UUID, -- Can reference any related record
-    related_type TEXT, -- Type of related record (exam, attendance, etc.)
+    related_id UUID,
+    related_type TEXT,
 
     -- Status
     is_read BOOLEAN DEFAULT false,
@@ -511,10 +511,7 @@ CREATE TABLE system_logs (
     execution_time_ms INTEGER,
 
     -- Metadata
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-
-    -- Constraints
-    CONSTRAINT valid_ip CHECK (ip_address IS NULL OR ip_address << inet '0.0.0.0/0')
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================================================
@@ -558,7 +555,7 @@ CREATE INDEX idx_exam_results_exam_id ON exam_results(exam_id);
 CREATE INDEX idx_exam_results_user_id ON exam_results(user_id);
 CREATE INDEX idx_exam_results_is_passed ON exam_results(is_passed);
 
--- Grades indexes (NEW)
+-- Grades indexes
 CREATE INDEX idx_grades_student_id ON grades(student_id);
 CREATE INDEX idx_grades_teacher_id ON grades(teacher_id);
 CREATE INDEX idx_grades_subject ON grades(subject);
@@ -660,10 +657,14 @@ WHERE u.role = 'siswa' AND u.is_active = true
 GROUP BY g.student_id, u.nama, u.class_name, g.subject, g.semester;
 
 -- ============================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
+-- ROW LEVEL SECURITY (RLS) - DISABLED FOR LOCALSTORAGE AUTH
 -- ============================================================================
 
--- Enable RLS on all tables
+-- For applications using localStorage for session management,
+-- we disable RLS to allow direct database access through API routes
+-- Security is handled at the application level through role-based access
+
+-- Enable RLS on all tables but with permissive policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE faces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
@@ -682,48 +683,24 @@ ALTER TABLE pengumuman ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
 
--- Users policies (adjusted for localStorage-based auth)
-CREATE POLICY "Users can view their own data" ON users FOR SELECT USING (true);
-CREATE POLICY "Users can update their own data" ON users FOR UPDATE USING (true);
-CREATE POLICY "Admins can manage all users" ON users FOR ALL USING (true);
-
--- Faces policies (simplified for localStorage auth)
-CREATE POLICY "Users can view their own faces" ON faces FOR SELECT USING (true);
-CREATE POLICY "Users can manage their own faces" ON faces FOR ALL USING (true);
-
--- Classes policies (simplified for localStorage auth)
-CREATE POLICY "Everyone can view active classes" ON classes FOR SELECT USING (is_active = true);
-CREATE POLICY "Users can manage classes" ON classes FOR ALL USING (true);
-
--- Class students policies (simplified for localStorage auth)
-CREATE POLICY "Users can view enrollments" ON class_students FOR SELECT USING (true);
-CREATE POLICY "Users can manage enrollments" ON class_students FOR ALL USING (true);
-
--- Attendance policies (simplified for localStorage auth)
-CREATE POLICY "Users can view attendance" ON attendance FOR SELECT USING (true);
-CREATE POLICY "Users can manage attendance" ON attendance FOR ALL USING (true);
-
--- Grades policies (simplified for localStorage auth)
-CREATE POLICY "Users can view grades" ON grades FOR SELECT USING (true);
-CREATE POLICY "Users can manage grades" ON grades FOR ALL USING (true);
-
--- Exams policies (simplified for localStorage auth)
-CREATE POLICY "Users can view exams" ON exams FOR SELECT USING (true);
-CREATE POLICY "Users can manage exams" ON exams FOR ALL USING (true);
-
--- Exam results policies (simplified for localStorage auth)
-CREATE POLICY "Users can view exam results" ON exam_results FOR SELECT USING (true);
-CREATE POLICY "Users can manage exam results" ON exam_results FOR ALL USING (true);
-
--- Pengumuman policies (simplified for localStorage auth)
-CREATE POLICY "Users can view announcements" ON pengumuman FOR SELECT USING (true);
-
--- Notifications policies (simplified for localStorage auth)
-CREATE POLICY "Users can view notifications" ON notifications FOR SELECT USING (true);
-CREATE POLICY "Users can manage notifications" ON notifications FOR ALL USING (true);
-
--- System logs policies (simplified for localStorage auth)
-CREATE POLICY "Users can view system logs" ON system_logs FOR SELECT USING (true);
+-- Permissive policies for localStorage-based authentication
+CREATE POLICY "Allow all operations for localStorage auth" ON users FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON faces FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON classes FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON class_students FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON attendance FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON attendance_settings FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON attendance_periods FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON holidays FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON attendance_summary FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON exams FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON questions FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON answers FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON exam_results FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON grades FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON pengumuman FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON notifications FOR ALL USING (true);
+CREATE POLICY "Allow all operations for localStorage auth" ON system_logs FOR ALL USING (true);
 
 -- ============================================================================
 -- FUNCTIONS AND TRIGGERS
@@ -814,7 +791,7 @@ CREATE TRIGGER trigger_update_attendance_summary
 -- INITIAL DATA SETUP
 -- ============================================================================
 
--- Insert default admin user (password: admin123)
+-- Insert default admin user
 INSERT INTO users (role, nama, identitas, email, is_active, is_verified)
 VALUES (
     'admin',
@@ -850,9 +827,9 @@ ON CONFLICT (name) DO NOTHING;
 DO $$
 BEGIN
     RAISE NOTICE '============================================================================';
-    RAISE NOTICE 'SISFOTJKT2 Production Database Schema Setup Complete!';
+    RAISE NOTICE 'SISFOTJKT2 LocalStorage-Compatible Database Schema Setup Complete!';
     RAISE NOTICE '============================================================================';
-    RAISE NOTICE 'Database Features:';
+    RAISE NOTICE 'Schema Features:';
     RAISE NOTICE '• Complete user management with role-based access';
     RAISE NOTICE '• Face recognition system with multiple faces per user';
     RAISE NOTICE '• Class management and student enrollment';
@@ -862,8 +839,8 @@ BEGIN
     RAISE NOTICE '• Announcement and notification system';
     RAISE NOTICE '• System logging and audit trails';
     RAISE NOTICE '• Performance optimized with proper indexing';
-    RAISE NOTICE '• Row Level Security (RLS) policies enabled';
+    RAISE NOTICE '• RLS policies configured for localStorage authentication';
     RAISE NOTICE '============================================================================';
-    RAISE NOTICE 'Ready for production deployment!';
+    RAISE NOTICE 'Ready for localStorage-based authentication!';
     RAISE NOTICE '============================================================================';
 END $$;
