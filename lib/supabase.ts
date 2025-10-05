@@ -27,6 +27,9 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
+// Fallback client for when service key is not available
+export const supabaseFallback = createClient(supabaseUrl, supabaseAnonKey)
+
 // Database types
 export interface User {
   id: string

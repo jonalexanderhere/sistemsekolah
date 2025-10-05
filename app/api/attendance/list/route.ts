@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin, supabaseFallback } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +23,21 @@ export async function GET(request: NextRequest) {
     const safeLimit = Math.min(limit, 1000);
     const safeOffset = Math.max(offset, 0);
 
-    let query = supabaseAdmin
+    // Try with admin client first, fallback to anon client if it fails
+    let query;
+    let clientToUse = supabaseAdmin;
+
+    try {
+      // Test admin client connection
+      await supabaseAdmin.from('users').select('id').limit(1);
+      query = supabaseAdmin;
+    } catch (adminError) {
+      console.warn('Admin client failed, using fallback client:', adminError instanceof Error ? adminError.message : String(adminError));
+      query = supabaseFallback;
+      clientToUse = supabaseFallback;
+    }
+
+    query = query
       .from('attendance')
       .select(`
         id,
@@ -128,7 +142,8 @@ export async function GET(request: NextRequest) {
         limit: safeLimit,
         offset: safeOffset,
         hasMore: (count || 0) > safeOffset + safeLimit
-      }
+      },
+      usingFallback: clientToUse === supabaseFallback
     };
 
     console.log('📊 Attendance API: Response prepared successfully');
