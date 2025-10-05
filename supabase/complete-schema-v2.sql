@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS pengumuman CASCADE;
 DROP TABLE IF EXISTS attendance CASCADE;
 DROP TABLE IF EXISTS faces CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS grades CASCADE;
 
 -- ============================================================================
 -- CORE TABLES
@@ -101,6 +102,43 @@ CREATE TABLE faces (
     
     -- Constraints
     CONSTRAINT one_primary_face_per_user UNIQUE (user_id, is_primary) DEFERRABLE INITIALLY DEFERRED
+);
+
+-- ============================================================================
+-- ACADEMIC SYSTEM
+-- ============================================================================
+
+-- Grades table for academic grading system
+CREATE TABLE grades (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Assignment Information
+    assignment_name TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    grade DECIMAL(5,2) NOT NULL CHECK (grade >= 0 AND grade <= 100),
+    max_grade DECIMAL(5,2) DEFAULT 100.00 CHECK (max_grade > 0),
+
+    -- Date Information
+    date DATE NOT NULL,
+    semester TEXT CHECK (semester IN ('1', '2', 'ganjil', 'genap')),
+
+    -- Additional Information
+    notes TEXT,
+    weight DECIMAL(3,2) DEFAULT 1.00, -- Weight for grade calculation
+
+    -- Status
+    is_final BOOLEAN DEFAULT false,
+    is_published BOOLEAN DEFAULT false,
+
+    -- Metadata
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID REFERENCES users(id),
+
+    -- Constraints
+    UNIQUE(student_id, assignment_name, subject, date)
 );
 
 -- Classes table for better organization
@@ -1203,6 +1241,65 @@ FROM exams e
 LEFT JOIN exam_results er ON e.id = er.exam_id
 WHERE e.is_active = true
 GROUP BY e.id, e.judul, e.mata_pelajaran, e.kelas;
+
+-- ============================================================================
+-- PERFORMANCE INDEXES
+-- ============================================================================
+
+-- Indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_nisn ON users(nisn);
+CREATE INDEX IF NOT EXISTS idx_users_identitas ON users(identitas);
+CREATE INDEX IF NOT EXISTS idx_users_class_name ON users(class_name);
+CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_faces_user_id ON faces(user_id);
+CREATE INDEX IF NOT EXISTS idx_faces_is_primary ON faces(is_primary);
+CREATE INDEX IF NOT EXISTS idx_faces_is_active ON faces(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_classes_name ON classes(name);
+CREATE INDEX IF NOT EXISTS idx_classes_grade_level ON classes(grade_level);
+CREATE INDEX IF NOT EXISTS idx_classes_is_active ON classes(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_class_students_class_id ON class_students(class_id);
+CREATE INDEX IF NOT EXISTS idx_class_students_student_id ON class_students(student_id);
+CREATE INDEX IF NOT EXISTS idx_class_students_status ON class_students(status);
+
+CREATE INDEX IF NOT EXISTS idx_attendance_user_id ON attendance(user_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_tanggal ON attendance(tanggal);
+CREATE INDEX IF NOT EXISTS idx_attendance_status ON attendance(status);
+CREATE INDEX IF NOT EXISTS idx_attendance_waktu_masuk ON attendance(waktu_masuk);
+
+CREATE INDEX IF NOT EXISTS idx_exams_mata_pelajaran ON exams(mata_pelajaran);
+CREATE INDEX IF NOT EXISTS idx_exams_kelas ON exams(kelas);
+CREATE INDEX IF NOT EXISTS idx_exams_is_active ON exams(is_active);
+CREATE INDEX IF NOT EXISTS idx_exams_tanggal_mulai ON exams(tanggal_mulai);
+
+CREATE INDEX IF NOT EXISTS idx_exam_results_exam_id ON exam_results(exam_id);
+CREATE INDEX IF NOT EXISTS idx_exam_results_user_id ON exam_results(user_id);
+CREATE INDEX IF NOT EXISTS idx_exam_results_is_passed ON exam_results(is_passed);
+
+-- New indexes for grades table
+CREATE INDEX IF NOT EXISTS idx_grades_student_id ON grades(student_id);
+CREATE INDEX IF NOT EXISTS idx_grades_teacher_id ON grades(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_grades_subject ON grades(subject);
+CREATE INDEX IF NOT EXISTS idx_grades_date ON grades(date);
+CREATE INDEX IF NOT EXISTS idx_grades_semester ON grades(semester);
+
+CREATE INDEX IF NOT EXISTS idx_pengumuman_created_at ON pengumuman(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_system_logs_level ON system_logs(level);
+CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at);
+
+-- Composite indexes for common queries
+CREATE INDEX IF NOT EXISTS idx_attendance_user_date ON attendance(user_id, tanggal);
+CREATE INDEX IF NOT EXISTS idx_exam_results_exam_user ON exam_results(exam_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_grades_student_subject_date ON grades(student_id, subject, date);
+
+-- Partial indexes for active records
+CREATE INDEX IF NOT EXISTS idx_users_active_role ON users(is_active, role) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_exams_active_published ON exams(is_active, is_published) WHERE is_active = true AND is_published = true;
 
 -- ============================================================================
 -- COMPLETION MESSAGE
