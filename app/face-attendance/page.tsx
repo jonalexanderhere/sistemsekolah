@@ -50,15 +50,27 @@ export default function FaceAttendancePage() {
 
   const loadKnownFaces = async () => {
     try {
-      // Load from localStorage or create empty array
-      const storedFaces = localStorage.getItem('registeredFaces');
-      if (storedFaces) {
-        const faces = JSON.parse(storedFaces);
+      // Load registered faces from Supabase API
+      const response = await fetch('/api/faces/list');
+      const data = await response.json();
+
+      if (data.success) {
+        // Transform data to match expected format
+        const faces = data.data.map((face: any) => ({
+          id: face.user_id,
+          descriptor: face.embedding,
+          label: face.users?.nama || 'Unknown User',
+          role: face.users?.role,
+          nisn: face.users?.nisn,
+          registeredAt: face.created_at,
+          confidence: face.confidence,
+          isPrimary: face.is_primary
+        }));
         setKnownFaces(faces);
-        console.log('📊 Loaded registered faces from storage:', faces);
+        console.log('📊 Loaded registered faces from Supabase:', faces.length);
       } else {
         setKnownFaces([]);
-        console.log('📊 No registered faces found');
+        console.log('📊 No registered faces found in database');
       }
     } catch (error) {
       console.error('Error loading known faces:', error);
@@ -70,12 +82,26 @@ export default function FaceAttendancePage() {
 
   const loadRecentAttendance = async () => {
     try {
-      // Load from localStorage or create empty array
-      const storedAttendance = localStorage.getItem('attendanceRecords');
-      if (storedAttendance) {
-        const attendance = JSON.parse(storedAttendance);
+      // Load attendance records from Supabase API
+      const today = new Date().toISOString().split('T')[0];
+      const response = await fetch(`/api/attendance/list?date=${today}&limit=10`);
+      const data = await response.json();
+
+      if (data.success) {
+        // Transform data to match expected format
+        const attendance = data.data.map((record: any) => ({
+          id: record.id,
+          userId: record.user_id,
+          status: record.status,
+          waktu: record.waktu_masuk || record.created_at,
+          method: record.method,
+          user: {
+            nama: record.users?.nama || 'Unknown',
+            role: record.users?.role || 'siswa'
+          }
+        }));
         setRecentAttendance(attendance);
-        console.log('📊 Loaded attendance from storage:', attendance);
+        console.log('📊 Loaded attendance from Supabase:', attendance.length);
       } else {
         setRecentAttendance([]);
         console.log('📊 No attendance records found');
@@ -121,28 +147,61 @@ export default function FaceAttendancePage() {
       
       console.log('📝 Creating attendance record...');
       
-      // Add to recent attendance and save to localStorage
-      const newAttendance: AttendanceRecord = {
-        id: `attendance-${Date.now()}`,
-        userId: userId,
-        status: 'hadir',
-        waktu: new Date().toISOString(),
-        method: 'face_recognition',
-        user: {
-          nama: userName,
-          role: userRole
+      // Save attendance to Supabase
+      try {
+        const attendanceResponse = await fetch('/api/attendance/mark', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            status: 'hadir',
+            method: 'face_recognition',
+            waktu_masuk: new Date().toISOString()
+          })
+        });
+
+        const attendanceResult = await attendanceResponse.json();
+
+        if (attendanceResult.success) {
+          // Add to recent attendance for display
+          const newAttendance: AttendanceRecord = {
+            id: attendanceResult.data.id,
+            userId: userId,
+            status: 'hadir',
+            waktu: new Date().toISOString(),
+            method: 'face_recognition',
+            user: {
+              nama: userName,
+              role: userRole
+            }
+          };
+
+          const updatedAttendance = [newAttendance, ...recentAttendance.slice(0, 9)];
+          setRecentAttendance(updatedAttendance);
+
+          console.log('💾 Attendance saved to Supabase:', attendanceResult.data);
+        } else {
+          throw new Error(attendanceResult.error || 'Failed to save attendance');
         }
-      };
-      
-      console.log('📝 New attendance record:', newAttendance);
-      
-      const updatedAttendance = [newAttendance, ...recentAttendance.slice(0, 9)];
-      setRecentAttendance(updatedAttendance);
-      
-      // Save to localStorage
-      localStorage.setItem('attendanceRecords', JSON.stringify(updatedAttendance));
-      
-      console.log('💾 Attendance saved to localStorage');
+      } catch (error) {
+        console.error('Error saving attendance to Supabase:', error);
+        // Fallback to localStorage if API fails
+        const newAttendance: AttendanceRecord = {
+          id: `attendance-${Date.now()}`,
+          userId: userId,
+          status: 'hadir',
+          waktu: new Date().toISOString(),
+          method: 'face_recognition',
+          user: {
+            nama: userName,
+            role: userRole
+          }
+        };
+
+        const updatedAttendance = [newAttendance, ...recentAttendance.slice(0, 9)];
+        setRecentAttendance(updatedAttendance);
+        localStorage.setItem('attendanceRecords', JSON.stringify(updatedAttendance));
+      }
       
       // Show success message in console
       console.log('✅ Attendance marked successfully for:', userName);
@@ -185,6 +244,7 @@ export default function FaceAttendancePage() {
                 onFaceRecognized={handleFaceRecognized}
                 knownFaces={knownFaces}
                 className="mb-6"
+                showProgress={true}
               />
 
               {/* Last Recognition */}

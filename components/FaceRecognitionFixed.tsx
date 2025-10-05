@@ -24,6 +24,7 @@ interface FaceRecognitionProps {
   className?: string;
   autoRegister?: boolean; // New prop for auto registration
   onAutoAttendance?: (userId: string) => void; // New prop for auto attendance
+  showProgress?: boolean; // New prop to show progress bar
 }
 
 // Camera status types
@@ -36,7 +37,8 @@ export default function FaceRecognitionFixed({
   knownFaces = [],
   className = '',
   autoRegister = false,
-  onAutoAttendance
+  onAutoAttendance,
+  showProgress = true
 }: FaceRecognitionProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,6 +50,8 @@ export default function FaceRecognitionFixed({
   const [isProcessing, setIsProcessing] = useState(false);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [detectionInterval, setDetectionInterval] = useState<NodeJS.Timeout | null>(null);
+  const [recognitionProgress, setRecognitionProgress] = useState(0);
+  const [isRecognizing, setIsRecognizing] = useState(false);
   const [lastDetection, setLastDetection] = useState<any>(null);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -538,9 +542,16 @@ export default function FaceRecognitionFixed({
         }
         
         if (detections.length > 0) {
+          // Update progress for recognition mode
+          if (mode === 'recognize' && showProgress) {
+            setIsRecognizing(true);
+            setRecognitionProgress(prev => Math.min(prev + 5, 95)); // Increment progress
+            setLastDetection(Date.now());
+          }
+
           // Draw face detections
           drawFaceDetections(canvasRef.current, detections);
-          
+
           if (mode === 'register') {
             // For registration, we need to capture and process the face
             if (detections.length === 1) {
@@ -557,16 +568,35 @@ export default function FaceRecognitionFixed({
             // For recognition, compare with known faces
             for (const detection of detections) {
               const faceDescriptor = await getFaceDescriptor(videoRef.current, detection);
-              
+
               if (faceDescriptor) {
                 // Convert Float32Array to number array for matching
                 const descriptorArray = Array.from(faceDescriptor);
                 const match = findBestFaceMatch(descriptorArray, knownFaces);
-                
+
                 if (match && onFaceRecognized) {
+                  // Set progress to 100% when recognition successful
+                  setRecognitionProgress(100);
+                  setIsRecognizing(false);
+
+                  // Reset progress after delay
+                  setTimeout(() => {
+                    setRecognitionProgress(0);
+                    setIsRecognizing(false);
+                  }, 2000);
+
                   onFaceRecognized(match.id, match.distance);
                 }
               }
+            }
+          }
+        } else {
+          // No faces detected - reset progress if it was recognizing
+          if (mode === 'recognize' && showProgress && isRecognizing) {
+            const timeSinceLastDetection = Date.now() - (lastDetection || 0);
+            if (timeSinceLastDetection > 2000) { // Reset after 2 seconds of no detection
+              setRecognitionProgress(0);
+              setIsRecognizing(false);
             }
           }
         }
@@ -651,6 +681,34 @@ export default function FaceRecognitionFixed({
             {cameraStatus === 'insecure' && 'Perlu HTTPS'}
           </span>
         </div>
+
+        {/* Progress Bar for Face Recognition */}
+        {showProgress && mode === 'recognize' && cameraStatus === 'active' && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">
+                {isRecognizing ? 'Menganalisis wajah...' : 'Siap untuk pengenalan'}
+              </span>
+              <span className="text-gray-500">{recognitionProgress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  recognitionProgress >= 80 ? 'bg-green-500' :
+                  recognitionProgress >= 50 ? 'bg-yellow-500' :
+                  recognitionProgress >= 20 ? 'bg-blue-500' : 'bg-gray-400'
+                }`}
+                style={{ width: `${recognitionProgress}%` }}
+              />
+            </div>
+            {isRecognizing && (
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Mendeteksi dan menganalisis wajah...</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Error Message */}
         {errorMessage && (
