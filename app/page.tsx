@@ -99,11 +99,17 @@ export default function HomePage() {
           description: data.message || `Selamat datang, ${data.user.nama}!`
         });
 
-        // Auto-redirect based on role (only for admin and guru)
-        if (data.redirect && data.redirect !== '/' && (data.user.role === 'admin' || data.user.role === 'guru')) {
-          setTimeout(() => {
-            router.push(data.redirect);
-          }, 1500); // 1.5 second delay to show toast
+        // Auto-redirect based on role
+        if (data.redirect && data.redirect !== '/') {
+          if (data.user.role === 'admin') {
+            setTimeout(() => {
+              router.push('/admin-dashboard');
+            }, 1500);
+          } else if (data.user.role === 'guru') {
+            setTimeout(() => {
+              router.push('/teacher-dashboard');
+            }, 1500);
+          }
         }
       } else {
         toast({

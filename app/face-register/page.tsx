@@ -15,6 +15,8 @@ interface User {
   nisn?: string;
   identitas?: string;
   has_face: boolean;
+  email?: string;
+  class_name?: string;
 }
 
 export default function FaceRegisterPage() {
@@ -28,17 +30,52 @@ export default function FaceRegisterPage() {
     try {
       console.log('👤 Face registration successful:', { embeddingLength: faceEmbedding.length });
       
-      // Create user data after successful registration
-      const newUser: User = {
-        id: `user-${Date.now()}`,
-        nama: 'User Terdaftar',
-        role: 'siswa',
-        nisn: 'AUTO-' + Date.now().toString().slice(-6),
-        has_face: true
-      };
+      // Check if there's already a logged-in user
+      const existingUser = localStorage.getItem('user');
+      let newUser: User;
+      
+      if (existingUser) {
+        // Use existing user data but update face status
+        const userData = JSON.parse(existingUser);
+        newUser = {
+          ...userData,
+          has_face: true
+        };
+        console.log('👤 Using existing user data:', userData);
+      } else {
+        // Create new user data
+        newUser = {
+          id: `user-${Date.now()}`,
+          nama: 'User Terdaftar',
+          role: 'siswa',
+          nisn: 'AUTO-' + Date.now().toString().slice(-6),
+          has_face: true
+        };
+        console.log('👤 Creating new user data');
+      }
       
       setUser(newUser);
       setRegistrationComplete(true);
+      
+      // Save user data to localStorage for persistence
+      localStorage.setItem('currentUser', JSON.stringify(newUser));
+      
+      // Save face data to registeredFaces for attendance system
+      const faceData = {
+        id: newUser.id,
+        descriptor: faceEmbedding,
+        label: newUser.nama,
+        role: newUser.role,
+        nisn: newUser.nisn || newUser.identitas,
+        registeredAt: new Date().toISOString()
+      };
+      
+      // Load existing faces and add new one
+      const existingFaces = JSON.parse(localStorage.getItem('registeredFaces') || '[]');
+      const updatedFaces = [...existingFaces, faceData];
+      localStorage.setItem('registeredFaces', JSON.stringify(updatedFaces));
+      
+      console.log('💾 Face data saved to localStorage:', faceData);
       
       toast({
         title: "Berhasil!",

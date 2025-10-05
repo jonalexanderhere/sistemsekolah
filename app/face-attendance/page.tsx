@@ -12,12 +12,17 @@ interface KnownFace {
   id: string;
   descriptor: number[];
   label: string;
+  role?: string;
+  nisn?: string;
+  registeredAt?: string;
 }
 
 interface AttendanceRecord {
   id: string;
+  userId?: string;
   status: string;
   waktu: string;
+  method?: string;
   user: {
     nama: string;
     role: string;
@@ -86,6 +91,7 @@ export default function FaceAttendancePage() {
     if (lastRecognition && 
         lastRecognition.userId === userId && 
         Date.now() - lastRecognition.timestamp.getTime() < 5000) {
+      console.log('⏭️ Skipping duplicate recognition');
       return;
     }
 
@@ -95,6 +101,9 @@ export default function FaceAttendancePage() {
       // Get user info from known faces
       const recognizedFace = knownFaces.find(face => face.id === userId);
       const userName = recognizedFace ? recognizedFace.label : 'User Terdaftar';
+      const userRole = recognizedFace?.role || 'siswa';
+      
+      console.log('👤 User details:', { userName, userRole, userId });
       
       setLastRecognition({
         userId,
@@ -103,22 +112,29 @@ export default function FaceAttendancePage() {
         timestamp: new Date()
       });
 
-      // Mark attendance
+      // Mark attendance with enhanced notification
       toast({
-        title: "Absensi Berhasil!",
-        description: `${userName} - Hadir`,
+        title: "✅ Absensi Berhasil!",
+        description: `${userName} berhasil melakukan absensi`,
+        duration: 5000,
       });
+      
+      console.log('📝 Creating attendance record...');
       
       // Add to recent attendance and save to localStorage
       const newAttendance: AttendanceRecord = {
         id: `attendance-${Date.now()}`,
+        userId: userId,
         status: 'hadir',
         waktu: new Date().toISOString(),
+        method: 'face_recognition',
         user: {
           nama: userName,
-          role: 'siswa'
+          role: userRole
         }
       };
+      
+      console.log('📝 New attendance record:', newAttendance);
       
       const updatedAttendance = [newAttendance, ...recentAttendance.slice(0, 9)];
       setRecentAttendance(updatedAttendance);
@@ -126,10 +142,15 @@ export default function FaceAttendancePage() {
       // Save to localStorage
       localStorage.setItem('attendanceRecords', JSON.stringify(updatedAttendance));
       
+      console.log('💾 Attendance saved to localStorage');
+      
+      // Show success message in console
+      console.log('✅ Attendance marked successfully for:', userName);
+      
     } catch (error) {
-      console.error('Error processing face recognition:', error);
+      console.error('❌ Error processing face recognition:', error);
       toast({
-        title: "Error",
+        title: "❌ Error",
         description: "Terjadi kesalahan saat memproses pengenalan wajah",
         variant: "destructive"
       });

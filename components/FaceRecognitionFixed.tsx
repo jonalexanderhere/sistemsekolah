@@ -457,17 +457,22 @@ export default function FaceRecognitionFixed({
             onFaceRegistered(descriptorArray);
           }
           
-          // Save face descriptor to localStorage
+          // Save face descriptor to localStorage with enhanced data
           const faceData = {
             id: `user-${Date.now()}`,
             descriptor: descriptorArray,
-            label: 'User Terdaftar'
+            label: 'User Terdaftar',
+            role: 'siswa',
+            nisn: `AUTO-${Date.now().toString().slice(-6)}`,
+            registeredAt: new Date().toISOString()
           };
           
           // Load existing faces and add new one
           const existingFaces = JSON.parse(localStorage.getItem('registeredFaces') || '[]');
           const updatedFaces = [...existingFaces, faceData];
           localStorage.setItem('registeredFaces', JSON.stringify(updatedFaces));
+          
+          console.log('💾 Face data saved to localStorage:', faceData);
           
           // Auto mark attendance after registration
           if (onAutoAttendance) {

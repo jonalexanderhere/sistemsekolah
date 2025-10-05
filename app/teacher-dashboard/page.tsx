@@ -36,6 +36,7 @@ interface DashboardStats {
   activeExams: number;
   averageScore: number;
   todayAttendance: number;
+  totalGrades: number;
 }
 
 export default function TeacherDashboard() {
@@ -46,11 +47,36 @@ export default function TeacherDashboard() {
     totalExams: 0,
     activeExams: 0,
     averageScore: 0,
-    todayAttendance: 0
+    todayAttendance: 0,
+    totalGrades: 0
   });
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+
+  // Check for existing login on component mount
+  useEffect(() => {
+    const checkExistingLogin = () => {
+      try {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          const userData = JSON.parse(savedUser);
+          if (userData.role === 'guru' || userData.role === 'admin') {
+            console.log('👤 Found existing login:', userData);
+            setUser(userData);
+            loadDashboardStats();
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking existing login:', error);
+      }
+      setIsLoading(false);
+    };
+
+    checkExistingLogin();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +112,11 @@ export default function TeacherDashboard() {
         }
 
         setUser(data.user);
+        
+        // Save user data to localStorage for persistence
+        localStorage.setItem('user', JSON.stringify(data.user));
+        console.log('💾 User data saved to localStorage:', data.user);
+        
         loadDashboardStats();
         toast({
           title: "Login Berhasil",
@@ -129,7 +160,8 @@ export default function TeacherDashboard() {
         totalExams: examsData.data?.length || 0,
         activeExams: examsData.data?.filter((exam: any) => exam.is_active && exam.is_published).length || 0,
         averageScore: 85.5, // Placeholder - calculate from actual results
-        todayAttendance: attendanceData.data?.length || 0
+        todayAttendance: attendanceData.data?.length || 0,
+        totalGrades: 0 // Will be updated when grades page loads
       });
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
@@ -139,6 +171,11 @@ export default function TeacherDashboard() {
   const handleLogout = () => {
     setUser(null);
     setLoginForm({ nisn: '', nip: '', identitas: '' });
+    
+    // Clear user data from localStorage
+    localStorage.removeItem('user');
+    console.log('🗑️ User data cleared from localStorage');
+    
     toast({
       title: "Logout Berhasil",
       description: "Anda telah keluar dari sistem"
@@ -334,6 +371,31 @@ export default function TeacherDashboard() {
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Buat Ujian
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Nilai */}
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigateTo('/teacher-dashboard/grades')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-purple-600" />
+                Data Nilai
+              </CardTitle>
+              <CardDescription>
+                Kelola nilai dan tugas siswa
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-600">Total Nilai: {stats.totalGrades || 0}</p>
+                  <p className="text-sm text-gray-600">Siswa: {stats.totalStudents || 0}</p>
+                </div>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tambah Nilai
                 </Button>
               </div>
             </CardContent>

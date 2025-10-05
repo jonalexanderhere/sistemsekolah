@@ -26,7 +26,6 @@ interface User {
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [loginForm, setLoginForm] = useState({ nisn: '', nip: '', identitas: '' });
   const [settings, setSettings] = useState<AttendanceSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,60 +41,33 @@ export default function SettingsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!loginForm.nisn && !loginForm.nip && !loginForm.identitas) {
-      toast({
-        title: "Error",
-        description: "Masukkan NISN/NIP atau Identitas",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginForm)
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        if (data.user.role !== 'guru' && data.user.role !== 'admin') {
+    // Check for saved user on component mount
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        if (userData.role === 'guru' || userData.role === 'admin') {
+          setUser(userData);
+          loadSettings();
+        } else {
           toast({
             title: "Akses Ditolak",
-            description: "Hanya guru yang dapat mengakses pengaturan",
+            description: "Hanya guru dan admin yang dapat mengakses pengaturan",
             variant: "destructive"
           });
-          return;
+          router.push('/');
         }
-        
-        setUser(data.user);
-        toast({
-          title: "Login Berhasil",
-          description: `Selamat datang, ${data.user.nama}!`
-        });
-      } else {
-        toast({
-          title: "Login Gagal",
-          description: data.error || "User tidak ditemukan",
-          variant: "destructive"
-        });
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('user');
+        router.push('/');
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Terjadi kesalahan saat login",
-        variant: "destructive"
-      });
+    } else {
+      router.push('/');
     }
-  };
+    setIsLoading(false);
+  }, [toast, router]);
+
 
   const loadSettings = async () => {
     try {
@@ -173,53 +145,10 @@ export default function SettingsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-md mx-auto">
-            <div className="mb-6">
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push('/')}
-                className="mb-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Kembali
-              </Button>
-              
-              <h1 className="text-2xl font-bold mb-2">Pengaturan Sistem</h1>
-              <p className="text-gray-600">
-                Login sebagai guru untuk mengakses pengaturan
-              </p>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Login Guru</CardTitle>
-                <CardDescription>
-                  Masukkan identitas guru untuk mengakses pengaturan
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Identitas Guru
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Masukkan nomor identitas"
-                      value={loginForm.identitas}
-                      onChange={(e) => setLoginForm(prev => ({ ...prev, identitas: e.target.value }))}
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full">
-                    Login
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Memuat...</p>
         </div>
       </div>
     );

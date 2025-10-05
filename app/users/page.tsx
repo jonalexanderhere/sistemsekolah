@@ -24,6 +24,9 @@ interface CurrentUser {
   id: string;
   nama: string;
   role: string;
+  nisn?: string;
+  identitas?: string;
+  email?: string;
 }
 
 export default function UsersPage() {
@@ -130,7 +133,13 @@ export default function UsersPage() {
   const loadUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/users/list?limit=1000');
+      
+      // For teachers, only load students. For admins, load all users
+      const url = currentUser?.role === 'guru' 
+        ? '/api/users/list?role=siswa&limit=1000' 
+        : '/api/users/list?limit=1000';
+        
+      const response = await fetch(url);
       const data = await response.json();
       
       if (data.success) {
@@ -235,9 +244,13 @@ export default function UsersPage() {
                 Kembali
               </Button>
               
-              <h1 className="text-2xl font-bold mb-2">Data Pengguna</h1>
+              <h1 className="text-2xl font-bold mb-2">
+                {(currentUser as CurrentUser | null)?.role === 'guru' ? 'Data Siswa' : 'Data Pengguna'}
+              </h1>
               <p className="text-gray-600">
-                Login sebagai guru untuk mengakses data pengguna
+                {(currentUser as CurrentUser | null)?.role === 'guru'
+                  ? 'Lihat data siswa dan informasi mereka'
+                  : 'Login sebagai guru untuk mengakses data pengguna'}
               </p>
             </div>
 
@@ -438,16 +451,18 @@ export default function UsersPage() {
           {/* Export Buttons */}
           <Card className="mb-6">
             <CardContent className="p-6">
-              <div className="flex gap-4">
-                <Button onClick={handleExportExcel} className="flex items-center gap-2">
-                  <Download className="h-4 w-4" />
-                  Export Excel
-                </Button>
-                <Button onClick={handleExportPDF} variant="outline" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Export PDF
-                </Button>
-              </div>
+              {currentUser?.role === 'admin' && (
+                <div className="flex gap-4">
+                  <Button onClick={handleExportExcel} className="flex items-center gap-2">
+                    <Download className="h-4 w-4" />
+                    Export Excel
+                  </Button>
+                  <Button onClick={handleExportPDF} variant="outline" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Export PDF
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
