@@ -60,7 +60,42 @@ export default function FaceRegisterPage() {
       // Save user data to localStorage for persistence
       localStorage.setItem('currentUser', JSON.stringify(newUser));
       
-      // Save face data to registeredFaces for attendance system
+      // Save face data to Supabase
+      try {
+        console.log('💾 Saving face data to Supabase...');
+        const response = await fetch('/api/faces/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: newUser.id,
+            faceEmbedding: faceEmbedding,
+            userData: {
+              nama: newUser.nama,
+              role: newUser.role,
+              nisn: newUser.nisn,
+              identitas: newUser.identitas,
+              email: newUser.email,
+              class_name: newUser.class_name || 'XII TJKT 2'
+            }
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Face data saved to Supabase successfully:', result);
+        } else {
+          const errorData = await response.json();
+          console.error('❌ Failed to save face data to Supabase:', errorData);
+          // Continue with localStorage fallback
+        }
+      } catch (supabaseError) {
+        console.error('❌ Supabase error:', supabaseError);
+        // Continue with localStorage fallback
+      }
+      
+      // Save face data to registeredFaces for attendance system (fallback)
       const faceData = {
         id: newUser.id,
         descriptor: faceEmbedding,
