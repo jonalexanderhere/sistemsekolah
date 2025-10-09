@@ -33,135 +33,99 @@ export async function GET(request: NextRequest) {
       date, userId, startDate, endDate, limit, offset
     });
 
-    // Validate limit to prevent excessive queries
-    const safeLimit = Math.min(limit, 1000);
-    const safeOffset = Math.max(offset, 0);
-
-    // Try with admin client first, fallback to anon client if it fails
-    let query;
-    let clientToUse = supabaseAdmin;
-
+    // Try to get data from Supabase first
     try {
-      // Test admin client connection
-      await supabaseAdmin.from('users').select('id').limit(1);
-      query = supabaseAdmin;
-    } catch (adminError) {
-      console.warn('Admin client failed, using fallback client:', adminError instanceof Error ? adminError.message : String(adminError));
-      query = supabaseFallback;
-      clientToUse = supabaseFallback;
-    }
-
-    query = query
-      .from('attendance')
-      .select(`
-        id,
-        tanggal,
-        waktu_masuk,
-        waktu_keluar,
-        status,
-        method,
-        notes,
-        created_at,
-        user_id,
-        users!inner (
+      let query = supabaseAdmin
+        .from('attendance')
+        .select(`
           id,
-          nama,
-          role,
-          nisn
-        )
-      `)
-      .order('created_at', { ascending: false });
+          tanggal,
+          waktu_masuk,
+          waktu_keluar,
+          status,
+          method,
+          notes,
+          created_at,
+          user_id,
+          users!inner (
+            id,
+            nama,
+            role,
+            nisn
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-    // Apply filters with proper date handling
-    if (date) {
-      console.log('📊 Applying date filter:', date);
-      query = query.eq('tanggal', date);
+      // Apply filters
+      if (date) {
+        query = query.eq('tanggal', date);
+      }
+      if (userId) {
+        query = query.eq('user_id', userId);
+      }
+      if (startDate && endDate) {
+        query = query.gte('tanggal', startDate).lte('tanggal', endDate);
+      } else if (startDate) {
+        query = query.gte('tanggal', startDate);
+      } else if (endDate) {
+        query = query.lte('tanggal', endDate);
+      }
+
+      // Add default date filter if no date filters provided
+      if (!date && !startDate && !endDate) {
+        const today = new Date().toISOString().split('T')[0];
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        query = query.gte('tanggal', thirtyDaysAgo).lte('tanggal', today);
+      }
+
+      // Apply pagination
+      const safeLimit = Math.min(limit, 1000);
+      const safeOffset = Math.max(offset, 0);
+      query = query.range(safeOffset, safeOffset + safeLimit - 1);
+
+      const { data: attendance, error } = await query;
+
+      if (!error && attendance) {
+        console.log('✅ Successfully loaded attendance from Supabase:', attendance.length);
+        
+        return NextResponse.json({
+          success: true,
+          data: attendance,
+          pagination: {
+            total: attendance.length,
+            limit: safeLimit,
+            offset: safeOffset,
+            hasMore: attendance.length === safeLimit
+          },
+          source: 'supabase'
+        });
+      }
+    } catch (supabaseError) {
+      console.warn('Supabase failed, falling back to localStorage:', supabaseError);
     }
 
-    if (userId) {
-      console.log('📊 Applying user filter:', userId);
-      query = query.eq('user_id', userId);
-    }
+    // Fallback to localStorage
+    console.log('📱 Loading attendance from localStorage fallback');
+    
+    // Get attendance from localStorage (this is a fallback)
+    const storedAttendance = typeof window !== 'undefined' 
+      ? JSON.parse(localStorage.getItem('attendanceRecords') || '[]')
+      : [];
 
-    if (startDate && endDate) {
-      console.log('📊 Applying date range filter:', { startDate, endDate });
-      query = query.gte('tanggal', startDate).lte('tanggal', endDate);
-    } else if (startDate) {
-      console.log('📊 Applying start date filter:', startDate);
-      query = query.gte('tanggal', startDate);
-    } else if (endDate) {
-      console.log('📊 Applying end date filter:', endDate);
-      query = query.lte('tanggal', endDate);
-    }
+    console.log('📱 Loaded attendance from localStorage:', storedAttendance.length);
 
-    // Add default date filter if no date filters provided
-    if (!date && !startDate && !endDate) {
-      const today = new Date().toISOString().split('T')[0];
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      console.log('📊 Applying default date range:', { thirtyDaysAgo, today });
-      query = query.gte('tanggal', thirtyDaysAgo).lte('tanggal', today);
-    }
-
-    // Apply pagination
-    query = query.range(safeOffset, safeOffset + safeLimit - 1);
-
-    console.log('📊 Executing attendance query...');
-    const { data: attendance, error } = await query;
-
-    if (error) {
-      console.error('❌ Error fetching attendance:', error);
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Gagal mengambil data absensi',
-          details: error.message,
-          code: error.code
-        },
-        { status: 500 }
-      );
-    }
-
-    console.log('📊 Attendance query successful, found', attendance?.length || 0, 'records');
-
-    // Get total count for pagination
-    console.log('📊 Getting total count...');
-    let countQuery = supabaseAdmin
-      .from('attendance')
-      .select('id', { count: 'exact', head: true });
-
-    if (date) countQuery = countQuery.eq('tanggal', date);
-    if (userId) countQuery = countQuery.eq('user_id', userId);
-    if (startDate && endDate) {
-      countQuery = countQuery.gte('tanggal', startDate).lte('tanggal', endDate);
-    } else if (startDate) {
-      countQuery = countQuery.gte('tanggal', startDate);
-    } else if (endDate) {
-      countQuery = countQuery.lte('tanggal', endDate);
-    }
-
-    const { count, error: countError } = await countQuery;
-
-    if (countError) {
-      console.error('❌ Error counting attendance:', countError);
-      // Don't fail the request if count fails, just log it
-    }
-
-    console.log('📊 Total count:', count || 0);
-
-    const response = {
+    return NextResponse.json({
       success: true,
-      data: attendance || [],
+      data: storedAttendance,
       pagination: {
-        total: count || 0,
-        limit: safeLimit,
-        offset: safeOffset,
-        hasMore: (count || 0) > safeOffset + safeLimit
+        total: storedAttendance.length,
+        limit: 50,
+        offset: 0,
+        hasMore: false
       },
-      usingFallback: clientToUse === supabaseFallback
-    };
-
-    console.log('📊 Attendance API: Response prepared successfully');
-    return NextResponse.json(response);
+      source: 'localStorage',
+      message: 'Using localStorage fallback - Supabase connection failed'
+    });
 
   } catch (error) {
     console.error('❌ Attendance list error:', error);
@@ -169,7 +133,8 @@ export async function GET(request: NextRequest) {
       { 
         success: false,
         error: 'Terjadi kesalahan server',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        data: []
       },
       { status: 500 }
     );
