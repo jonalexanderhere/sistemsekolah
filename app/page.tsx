@@ -190,7 +190,7 @@ export default function HomePage() {
                 <CardHeader className="text-center pb-6">
                   <CardTitle className="text-2xl font-semibold">Login</CardTitle>
                   <CardDescription className="text-gray-600">
-                    Masukkan NISN (siswa), NIP (guru), atau Identitas untuk masuk
+                    Masukkan NISN (siswa), NIP (guru), atau Identitas (admin) untuk masuk
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-8 pb-8">
@@ -233,11 +233,11 @@ export default function HomePage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Identitas (untuk guru)
+                        Identitas (untuk admin)
                       </label>
                       <Input
                         type="text"
-                        placeholder="Masukkan email identitas"
+                        placeholder="Masukkan identitas (contoh: ADMIN001)"
                         value={loginForm.identitas}
                         onChange={(e) => setLoginForm(prev => ({ ...prev, identitas: e.target.value, nisn: '', nip: '' }))}
                         className="h-12"
@@ -251,6 +251,16 @@ export default function HomePage() {
                     >
                       {isLoading ? 'Memproses...' : 'Login'}
                     </Button>
+                    
+                    {/* Login Examples */}
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-800 font-medium mb-2">Contoh Login:</p>
+                      <div className="text-xs text-blue-700 space-y-1">
+                        <p>• Admin: <span className="font-mono">ADMIN001</span> (di field Identitas)</p>
+                        <p>• Guru: <span className="font-mono">GURU001</span> (di field NIP)</p>
+                        <p>• Siswa: <span className="font-mono">2024001</span> (di field NISN)</p>
+                      </div>
+                    </div>
                   </form>
                 </CardContent>
               </Card>
