@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,11 +63,11 @@ export default function UsersPage() {
     if (currentUser) {
       loadUsers();
     }
-  }, [currentUser]);
+  }, [currentUser, loadUsers]);
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchTerm, roleFilter, faceFilter]);
+  }, [users, searchTerm, roleFilter, faceFilter, filterUsers]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,7 +130,7 @@ export default function UsersPage() {
     }
   };
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -161,9 +161,9 @@ export default function UsersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentUser, toast]);
 
-  const filterUsers = () => {
+  const filterUsers = useCallback(() => {
     let filtered = users;
 
     // Search filter
@@ -187,7 +187,7 @@ export default function UsersPage() {
     }
 
     setFilteredUsers(filtered);
-  };
+  }, [users, searchTerm, roleFilter, faceFilter]);
 
   const handleExportExcel = () => {
     if (filteredUsers.length === 0) {

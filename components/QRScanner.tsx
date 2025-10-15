@@ -165,7 +165,7 @@ export default function QRScanner({ onQRScanned, className = '' }: QRScannerProp
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [toast, onQRScanned, lastScanTime]);
 
   const stopScanner = useCallback(() => {
     console.log('🛑 Stopping QR scanner...');
