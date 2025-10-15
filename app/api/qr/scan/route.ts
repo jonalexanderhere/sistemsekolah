@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: 'Database connection failed',
-        details: supabaseError.message
+        details: supabaseError instanceof Error ? supabaseError.message : 'Unknown error'
       }, { status: 500 });
     }
 

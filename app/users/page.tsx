@@ -59,6 +59,65 @@ export default function UsersPage() {
     setIsLoading(false);
   }, []);
 
+  const loadUsers = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // For teachers, only load students. For admins, load all users
+      const url = currentUser?.role === 'guru' 
+        ? '/api/users/list?role=siswa&limit=1000' 
+        : '/api/users/list?limit=1000';
+        
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsers(data.data);
+      } else {
+        toast({
+          title: "Error",
+          description: "Gagal memuat data pengguna",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat memuat data",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentUser, toast]);
+
+  const filterUsers = useCallback(() => {
+    let filtered = users;
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(user =>
+        user.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.nisn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.identitas?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Role filter
+    if (roleFilter) {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    // Face filter
+    if (faceFilter) {
+      const hasFace = faceFilter === 'registered';
+      filtered = filtered.filter(user => user.has_face === hasFace);
+    }
+
+    setFilteredUsers(filtered);
+  }, [users, searchTerm, roleFilter, faceFilter]);
+
   useEffect(() => {
     if (currentUser) {
       loadUsers();
@@ -129,65 +188,6 @@ export default function UsersPage() {
       });
     }
   };
-
-  const loadUsers = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      // For teachers, only load students. For admins, load all users
-      const url = currentUser?.role === 'guru' 
-        ? '/api/users/list?role=siswa&limit=1000' 
-        : '/api/users/list?limit=1000';
-        
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.success) {
-        setUsers(data.data);
-      } else {
-        toast({
-          title: "Error",
-          description: "Gagal memuat data pengguna",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error loading users:', error);
-      toast({
-        title: "Error",
-        description: "Terjadi kesalahan saat memuat data",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentUser, toast]);
-
-  const filterUsers = useCallback(() => {
-    let filtered = users;
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(user =>
-        user.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.nisn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.identitas?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Role filter
-    if (roleFilter) {
-      filtered = filtered.filter(user => user.role === roleFilter);
-    }
-
-    // Face filter
-    if (faceFilter) {
-      const hasFace = faceFilter === 'registered';
-      filtered = filtered.filter(user => user.has_face === hasFace);
-    }
-
-    setFilteredUsers(filtered);
-  }, [users, searchTerm, roleFilter, faceFilter]);
 
   const handleExportExcel = () => {
     if (filteredUsers.length === 0) {
