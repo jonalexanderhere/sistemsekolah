@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('users')
-      .select('id, nama, role, nisn, identitas, created_at, face_embedding')
+      .select('id, nama, role, nisn, identitas, created_at')
       .order('nama', { ascending: true });
 
     // Apply filters
@@ -54,15 +54,14 @@ export async function GET(request: NextRequest) {
       console.error('Error counting users:', countError);
     }
 
-    // Transform data to include face registration status
+    // Transform data
     const transformedUsers = users?.map(user => ({
       id: user.id,
       nama: user.nama,
       role: user.role,
       nisn: user.nisn,
       identitas: user.identitas,
-      created_at: user.created_at,
-      has_face: !!user.face_embedding
+      created_at: user.created_at
     })) || [];
 
     return NextResponse.json({

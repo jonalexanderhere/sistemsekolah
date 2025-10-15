@@ -18,7 +18,6 @@ interface User {
   identitas?: string;
   email?: string;
   class_name?: string;
-  has_face: boolean;
   is_active?: boolean;
   is_verified?: boolean;
 }

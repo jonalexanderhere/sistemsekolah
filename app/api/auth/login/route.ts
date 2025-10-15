@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
       identitas: user.identitas,
       email: user.email,
       class_name: user.class_name,
-      has_face: !!user.face_embedding,
       is_active: user.is_active,
       is_verified: user.is_verified
     };

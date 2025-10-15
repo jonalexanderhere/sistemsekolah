@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { user_id, status = 'hadir', method = 'face_recognition', meta = {} } = await request.json();
+    const { user_id, status = 'hadir', method = 'qr_code', meta = {} } = await request.json();
 
     if (!user_id) {
       return NextResponse.json(
