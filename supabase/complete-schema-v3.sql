@@ -6,8 +6,13 @@
 -- Menambahkan sistem QR code yang lengkap
 
 -- Drop existing tables and views if they exist (in correct order due to foreign keys)
+-- Drop views first
 DROP VIEW IF EXISTS attendance_summary CASCADE;
 DROP VIEW IF EXISTS exam_results_summary CASCADE;
+
+-- Drop tables (handle both table and view cases)
+DROP TABLE IF EXISTS attendance_summary CASCADE;
+DROP TABLE IF EXISTS exam_results_summary CASCADE;
 DROP TABLE IF EXISTS system_logs CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS pengumuman CASCADE;
@@ -20,6 +25,11 @@ DROP TABLE IF EXISTS attendance CASCADE;
 DROP TABLE IF EXISTS class_students CASCADE;
 DROP TABLE IF EXISTS classes CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+
+-- Drop any existing face recognition tables (from old system)
+DROP TABLE IF EXISTS faces CASCADE;
+DROP TABLE IF EXISTS face_embeddings CASCADE;
+DROP TABLE IF EXISTS face_registrations CASCADE;
 
 -- =============================================
 -- 1. USERS TABLE
