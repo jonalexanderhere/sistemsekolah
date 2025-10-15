@@ -26,7 +26,11 @@ export async function POST(request: NextRequest) {
     // Extract student NISN from QR data
     const nisn = qrData.replace('STUDENT_', '');
     
+    console.log('🔍 QR Data received:', qrData);
+    console.log('🔍 Extracted NISN:', nisn);
+    
     if (!nisn) {
+      console.log('❌ Invalid QR Code format - no NISN extracted');
       return NextResponse.json({
         success: false,
         error: 'Invalid QR Code format'
@@ -43,9 +47,12 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (error || !student) {
+        console.log('❌ Student not found:', error?.message || 'No student data');
+        console.log('🔍 Searching for NISN:', nisn);
         return NextResponse.json({
           success: false,
-          error: 'Student not found'
+          error: 'Student not found',
+          details: error?.message || 'No student with this NISN'
         }, { status: 404 });
       }
 

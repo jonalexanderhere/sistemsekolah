@@ -106,6 +106,8 @@ export default function TeacherQRScannerPage() {
       if (result.success) {
         const { student, attendance } = result.data;
         
+        console.log('✅ QR Scan successful:', student);
+        
         // Update last scanned student
         setLastScannedStudent({
           nama: student.nama,
@@ -140,6 +142,8 @@ export default function TeacherQRScannerPage() {
           loadRecentAttendance();
         }, 2000);
       } else {
+        console.log('❌ QR Scan failed:', result.error);
+        console.log('❌ QR Scan details:', result.details);
         throw new Error(result.error || 'Failed to process QR code');
       }
     } catch (error) {
