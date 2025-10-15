@@ -85,7 +85,12 @@ export async function GET(request: NextRequest) {
 
       const { data: attendance, error } = await query;
 
-      if (!error && attendance) {
+      if (error) {
+        console.error('❌ Supabase query error:', error);
+        throw error;
+      }
+
+      if (attendance) {
         console.log('✅ Successfully loaded attendance from Supabase:', attendance.length);
         
         return NextResponse.json({
@@ -99,33 +104,30 @@ export async function GET(request: NextRequest) {
           },
           source: 'supabase'
         });
+      } else {
+        console.log('⚠️ No attendance data found in Supabase');
+        return NextResponse.json({
+          success: true,
+          data: [],
+          pagination: {
+            total: 0,
+            limit: safeLimit,
+            offset: safeOffset,
+            hasMore: false
+          },
+          source: 'supabase',
+          message: 'No attendance records found'
+        });
       }
     } catch (supabaseError) {
-      console.warn('Supabase failed, falling back to localStorage:', supabaseError);
+      console.error('❌ Supabase connection failed:', supabaseError);
+      return NextResponse.json({
+        success: false,
+        error: 'Database connection failed',
+        details: supabaseError.message,
+        data: []
+      }, { status: 500 });
     }
-
-    // Fallback to localStorage
-    console.log('📱 Loading attendance from localStorage fallback');
-    
-    // Get attendance from localStorage (this is a fallback)
-    const storedAttendance = typeof window !== 'undefined' 
-      ? JSON.parse(localStorage.getItem('attendanceRecords') || '[]')
-      : [];
-
-    console.log('📱 Loaded attendance from localStorage:', storedAttendance.length);
-
-    return NextResponse.json({
-      success: true,
-      data: storedAttendance,
-      pagination: {
-        total: storedAttendance.length,
-        limit: 50,
-        offset: 0,
-        hasMore: false
-      },
-      source: 'localStorage',
-      message: 'Using localStorage fallback - Supabase connection failed'
-    });
 
   } catch (error) {
     console.error('❌ Attendance list error:', error);
