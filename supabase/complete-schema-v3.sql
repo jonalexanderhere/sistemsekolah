@@ -6,30 +6,89 @@
 -- Menambahkan sistem QR code yang lengkap
 
 -- Drop existing tables and views if they exist (in correct order due to foreign keys)
--- Drop views first
-DROP VIEW IF EXISTS attendance_summary CASCADE;
-DROP VIEW IF EXISTS exam_results_summary CASCADE;
-
--- Drop tables (handle both table and view cases)
-DROP TABLE IF EXISTS attendance_summary CASCADE;
-DROP TABLE IF EXISTS exam_results_summary CASCADE;
-DROP TABLE IF EXISTS system_logs CASCADE;
-DROP TABLE IF EXISTS notifications CASCADE;
-DROP TABLE IF EXISTS pengumuman CASCADE;
-DROP TABLE IF EXISTS exam_results CASCADE;
-DROP TABLE IF EXISTS exam_questions CASCADE;
-DROP TABLE IF EXISTS questions CASCADE;
-DROP TABLE IF EXISTS exams CASCADE;
-DROP TABLE IF EXISTS grades CASCADE;
-DROP TABLE IF EXISTS attendance CASCADE;
-DROP TABLE IF EXISTS class_students CASCADE;
-DROP TABLE IF EXISTS classes CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-
--- Drop any existing face recognition tables (from old system)
-DROP TABLE IF EXISTS faces CASCADE;
-DROP TABLE IF EXISTS face_embeddings CASCADE;
-DROP TABLE IF EXISTS face_registrations CASCADE;
+-- Use DO block to handle both table and view cases safely
+DO $$
+BEGIN
+    -- Drop views first
+    IF EXISTS (SELECT 1 FROM information_schema.views WHERE table_name = 'attendance_summary') THEN
+        DROP VIEW attendance_summary CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.views WHERE table_name = 'exam_results_summary') THEN
+        DROP VIEW exam_results_summary CASCADE;
+    END IF;
+    
+    -- Drop tables
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'attendance_summary') THEN
+        DROP TABLE attendance_summary CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'exam_results_summary') THEN
+        DROP TABLE exam_results_summary CASCADE;
+    END IF;
+    
+    -- Drop other tables
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'system_logs') THEN
+        DROP TABLE system_logs CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notifications') THEN
+        DROP TABLE notifications CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'pengumuman') THEN
+        DROP TABLE pengumuman CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'exam_results') THEN
+        DROP TABLE exam_results CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'exam_questions') THEN
+        DROP TABLE exam_questions CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'questions') THEN
+        DROP TABLE questions CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'exams') THEN
+        DROP TABLE exams CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'grades') THEN
+        DROP TABLE grades CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'attendance') THEN
+        DROP TABLE attendance CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'class_students') THEN
+        DROP TABLE class_students CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'classes') THEN
+        DROP TABLE classes CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users') THEN
+        DROP TABLE users CASCADE;
+    END IF;
+    
+    -- Drop any existing face recognition tables (from old system)
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'faces') THEN
+        DROP TABLE faces CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'face_embeddings') THEN
+        DROP TABLE face_embeddings CASCADE;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'face_registrations') THEN
+        DROP TABLE face_registrations CASCADE;
+    END IF;
+END $$;
 
 -- =============================================
 -- 1. USERS TABLE
