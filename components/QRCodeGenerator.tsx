@@ -28,16 +28,23 @@ export default function QRCodeGenerator({
     if (!canvas) return;
 
     try {
-      // Generate QR code using the qrcode library
+      // Generate QR code using the qrcode library with enhanced settings
       await QRCodeLib.toCanvas(canvas, data, {
         width: size,
-        margin: 2,
+        margin: 4,
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         },
-        errorCorrectionLevel: 'M'
+        errorCorrectionLevel: 'H', // High error correction for better scanning
+        type: 'image/png',
+        quality: 0.92,
+        rendererOpts: {
+          quality: 0.92
+        }
       });
+      
+      console.log('✅ QR Code generated successfully:', data);
     } catch (error) {
       console.error('Error generating QR code:', error);
       // Fallback to simple pattern if QR generation fails

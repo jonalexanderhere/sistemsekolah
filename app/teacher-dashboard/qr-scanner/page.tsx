@@ -94,37 +94,18 @@ export default function TeacherQRScannerPage() {
     try {
       console.log('📱 QR Code scanned by teacher:', qrData);
       
-      // Extract student NISN from QR data
-      const nisn = qrData.replace('STUDENT_', '');
-      const student = students.find(s => s.nisn === nisn);
-      
-      if (!student) {
-        toast({
-          title: "❌ Error",
-          description: "Siswa tidak ditemukan dalam database",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // QR codes can be used multiple times as requested
-      // No duplicate prevention needed
-
-      // Mark attendance
-      const response = await fetch('/api/attendance/mark', {
+      // Use the improved QR scan API that handles everything
+      const response = await fetch('/api/qr/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: student.id,
-          status: 'hadir',
-          method: 'qr_code',
-          waktu_masuk: new Date().toISOString()
-        })
+        body: JSON.stringify({ qrData })
       });
 
       const result = await response.json();
 
       if (result.success) {
+        const { student, attendance } = result.data;
+        
         // Update last scanned student
         setLastScannedStudent({
           nama: student.nama,
@@ -140,14 +121,14 @@ export default function TeacherQRScannerPage() {
 
         // Update recent attendance
         const newAttendance: AttendanceRecord = {
-          id: result.data.id,
+          id: `qr-${Date.now()}`,
           userId: student.id,
-          status: 'hadir',
-          waktu: new Date().toISOString(),
-          method: 'qr_code',
+          status: attendance.status,
+          waktu: attendance.waktu_masuk,
+          method: attendance.method,
           user: {
             nama: student.nama,
-            role: student.role,
+            role: 'siswa',
             nisn: student.nisn
           }
         };
@@ -159,7 +140,7 @@ export default function TeacherQRScannerPage() {
           loadRecentAttendance();
         }, 2000);
       } else {
-        throw new Error(result.error || 'Failed to save attendance');
+        throw new Error(result.error || 'Failed to process QR code');
       }
     } catch (error) {
       console.error('Error processing QR scan:', error);

@@ -185,21 +185,68 @@ export default function QRScanner({ onQRScanned, className = '' }: QRScannerProp
       // Draw video frame to canvas
       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
-      // Real QR detection using jsQR library
+      // Enhanced QR detection with multiple attempts
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       
-      // Use jsQR library for actual QR code detection
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      // Try different detection methods
+      let code = null;
+      
+      // Method 1: Standard detection
+      code = jsQR(imageData.data, imageData.width, imageData.height);
+      
+      // Method 2: Try with different parameters if first fails
+      if (!code) {
+        // Create a smaller version for better detection
+        const scale = 0.5;
+        const scaledWidth = Math.floor(imageData.width * scale);
+        const scaledHeight = Math.floor(imageData.height * scale);
+        
+        const scaledCanvas = document.createElement('canvas');
+        const scaledContext = scaledCanvas.getContext('2d');
+        if (scaledContext) {
+          scaledCanvas.width = scaledWidth;
+          scaledCanvas.height = scaledHeight;
+          scaledContext.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
+          const scaledImageData = scaledContext.getImageData(0, 0, scaledWidth, scaledHeight);
+          code = jsQR(scaledImageData.data, scaledWidth, scaledHeight);
+        }
+      }
+      
+      // Method 3: Try with different image processing
+      if (!code) {
+        // Apply contrast enhancement
+        const enhancedData = new Uint8ClampedArray(imageData.data);
+        for (let i = 0; i < enhancedData.length; i += 4) {
+          // Simple contrast enhancement
+          const r = enhancedData[i];
+          const g = enhancedData[i + 1];
+          const b = enhancedData[i + 2];
+          
+          // Convert to grayscale and enhance contrast
+          const gray = Math.floor(0.299 * r + 0.587 * g + 0.114 * b);
+          const enhanced = gray > 128 ? 255 : 0;
+          
+          enhancedData[i] = enhanced;     // R
+          enhancedData[i + 1] = enhanced; // G
+          enhancedData[i + 2] = enhanced; // B
+          // Alpha channel remains unchanged
+        }
+        
+        code = jsQR(enhancedData, imageData.width, imageData.height);
+      }
+      
       const qrData = code ? code.data : null;
       
       if (qrData && Date.now() - lastScanTime > 2000) { // Prevent duplicate scans
         setLastScanTime(Date.now());
         console.log('📱 QR Code detected:', qrData);
+        console.log('📍 QR Code location:', code?.location);
         onQRScanned(qrData);
       }
     };
 
-    const interval = setInterval(detectQR, 100);
+    // Increased scan frequency for better detection
+    const interval = setInterval(detectQR, 50); // Faster scanning
     scanIntervalRef.current = interval;
   }, [onQRScanned, lastScanTime]);
 

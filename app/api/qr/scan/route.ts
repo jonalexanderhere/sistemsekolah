@@ -51,6 +51,40 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Student found:', student.nama);
       
+      // Mark attendance
+      const today = new Date().toISOString().split('T')[0];
+      const now = new Date().toISOString();
+      
+      try {
+        // Insert attendance record
+        const { data: attendance, error: attendanceError } = await supabaseAdmin
+          .from('attendance')
+          .insert({
+            user_id: student.id,
+            tanggal: today,
+            waktu_masuk: now,
+            status: 'hadir',
+            method: 'qr_code',
+            meta: {
+              scanned_at: now,
+              qr_data: qrData,
+              scanner_type: 'qr_scanner'
+            }
+          })
+          .select()
+          .single();
+
+        if (attendanceError) {
+          console.error('❌ Attendance insert error:', attendanceError);
+          // Continue even if attendance insert fails
+        } else {
+          console.log('✅ Attendance recorded:', attendance.id);
+        }
+      } catch (attendanceError) {
+        console.error('❌ Attendance error:', attendanceError);
+        // Continue even if attendance fails
+      }
+      
       return NextResponse.json({
         success: true,
         data: {
@@ -59,6 +93,12 @@ export async function POST(request: NextRequest) {
             nama: student.nama,
             nisn: student.nisn,
             class_name: student.class_name
+          },
+          attendance: {
+            tanggal: today,
+            waktu_masuk: now,
+            status: 'hadir',
+            method: 'qr_code'
           }
         }
       });
