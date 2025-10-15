@@ -144,7 +144,18 @@ export default function TeacherQRScannerPage() {
       } else {
         console.log('❌ QR Scan failed:', result.error);
         console.log('❌ QR Scan details:', result.details);
-        throw new Error(result.error || 'Failed to process QR code');
+        
+        // Handle duplicate attendance
+        if (result.error === 'Absensi hari ini sudah tercatat') {
+          toast({
+            title: "⚠️ Absensi Sudah Tercatat",
+            description: result.message || `${result.attendance?.user?.nama || 'Siswa'} sudah melakukan absensi hari ini`,
+            variant: "destructive",
+            duration: 5000,
+          });
+        } else {
+          throw new Error(result.error || 'Failed to process QR code');
+        }
       }
     } catch (error) {
       console.error('Error processing QR scan:', error);

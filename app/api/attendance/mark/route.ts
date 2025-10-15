@@ -36,8 +36,25 @@ export async function POST(request: NextRequest) {
       const today = now.toISOString().split('T')[0];
       const currentTime = now.toISOString();
 
-      // Allow multiple attendance records per day for QR code system
-      // QR codes can be used multiple times as requested
+      // Check for existing attendance today (1x per day limit)
+      const { data: existingAttendance } = await supabaseAdmin
+        .from('attendance')
+        .select('id, status, waktu_masuk')
+        .eq('user_id', user_id)
+        .eq('tanggal', today)
+        .single();
+
+      if (existingAttendance) {
+        return NextResponse.json({
+          success: false,
+          message: 'Absensi hari ini sudah tercatat',
+          attendance: {
+            id: existingAttendance.id,
+            status: existingAttendance.status,
+            waktu_masuk: existingAttendance.waktu_masuk
+          }
+        });
+      }
 
       // Determine status based on time
       let finalStatus = status;

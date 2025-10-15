@@ -58,8 +58,30 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Student found:', student.nama);
       
-      // Mark attendance
+      // Check for existing attendance today (1x per day limit)
       const today = new Date().toISOString().split('T')[0];
+      const { data: existingAttendance } = await supabaseAdmin
+        .from('attendance')
+        .select('id, status, waktu_masuk')
+        .eq('user_id', student.id)
+        .eq('tanggal', today)
+        .single();
+
+      if (existingAttendance) {
+        console.log('⚠️ Attendance already recorded today for:', student.nama);
+        return NextResponse.json({
+          success: false,
+          error: 'Absensi hari ini sudah tercatat',
+          message: `${student.nama} sudah melakukan absensi hari ini`,
+          attendance: {
+            id: existingAttendance.id,
+            status: existingAttendance.status,
+            waktu_masuk: existingAttendance.waktu_masuk
+          }
+        });
+      }
+      
+      // Mark attendance
       const now = new Date().toISOString();
       
       try {
