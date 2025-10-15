@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
           waktu_keluar,
           status,
           method,
-          notes,
+          meta,
           created_at,
           user_id,
           users!inner (
