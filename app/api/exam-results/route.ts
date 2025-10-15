@@ -55,10 +55,10 @@ export async function POST(request: NextRequest) {
 
     examQuestions?.forEach((eq: any) => {
       const question = eq.questions;
-      maxScore += question.points || eq.points || 1;
+      maxScore += (question as any)?.points || eq.points || 1;
       
-      if (answers[question.id] === question.correct_answer) {
-        totalScore += question.points || eq.points || 1;
+      if (answers[(question as any)?.id] === (question as any)?.correct_answer) {
+        totalScore += (question as any)?.points || eq.points || 1;
       }
     });
 
@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
         max_score: maxScore,
         percentage: Math.round((totalScore / maxScore) * 100),
         correct_answers: Object.keys(answers).filter(qId => {
-          const question = examQuestions?.find((eq: any) => eq.questions.id === qId);
-          return question && answers[qId] === question.questions.correct_answer;
+          const question = examQuestions?.find((eq: any) => eq.questions?.id === qId);
+          return question && answers[qId] === (question.questions as any)?.correct_answer;
         }).length,
         total_questions: totalQuestions
       }

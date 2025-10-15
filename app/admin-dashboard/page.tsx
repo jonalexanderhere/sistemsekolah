@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,6 +81,25 @@ export default function AdminDashboard() {
 
   const { toast } = useToast();
 
+  // Fetch system logs
+  const fetchSystemLogs = useCallback(async () => {
+    try {
+      const params = new URLSearchParams({
+        limit: '100',
+        ...Object.fromEntries(Object.entries(logFilters).filter(([_, v]) => v))
+      });
+
+      const response = await fetch(`/api/system/log?${params}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setSystemLogs(data.logs || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch system logs:', error);
+    }
+  }, [logFilters]);
+
   // Check if user is logged in
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -99,7 +118,7 @@ export default function AdminDashboard() {
       }
     }
     setIsLoading(false);
-  }, [toast]);
+  }, [toast, fetchSystemLogs]);
 
   // Handle admin login
   const handleLogin = async (e: React.FormEvent) => {
@@ -197,25 +216,6 @@ export default function AdminDashboard() {
       setStats(stats);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
-    }
-  };
-
-  // Fetch system logs
-  const fetchSystemLogs = async () => {
-    try {
-      const params = new URLSearchParams({
-        limit: '100',
-        ...Object.fromEntries(Object.entries(logFilters).filter(([_, v]) => v))
-      });
-
-      const response = await fetch(`/api/system/log?${params}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setSystemLogs(data.logs || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch system logs:', error);
     }
   };
 

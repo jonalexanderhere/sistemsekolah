@@ -301,7 +301,7 @@ export default function StudentExamPage() {
                             onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
                             className="w-4 h-4 text-blue-600"
                           />
-                          <span className="text-gray-900">{key}. {value}</span>
+                          <span className="text-gray-900">{key}. {String(value)}</span>
                         </label>
                       ))}
                     </div>

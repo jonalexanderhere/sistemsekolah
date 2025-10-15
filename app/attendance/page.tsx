@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,15 +21,7 @@ export default function AttendancePage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    loadAttendanceData();
-  }, []);
-
-  useEffect(() => {
-    filterData();
-  }, [attendanceData, searchTerm, dateFilter, statusFilter, roleFilter]);
-
-  const loadAttendanceData = async () => {
+  const loadAttendanceData = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -59,9 +51,9 @@ export default function AttendancePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
-  const filterData = () => {
+  const filterData = useCallback(() => {
     let filtered = attendanceData;
 
     // Search filter
@@ -88,7 +80,15 @@ export default function AttendancePage() {
     }
 
     setFilteredData(filtered);
-  };
+  }, [attendanceData, searchTerm, dateFilter, statusFilter, roleFilter]);
+
+  useEffect(() => {
+    loadAttendanceData();
+  }, [loadAttendanceData]);
+
+  useEffect(() => {
+    filterData();
+  }, [filterData]);
 
   const handleExportExcel = () => {
     if (filteredData.length === 0) {
