@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,27 +53,7 @@ export default function StudentExamPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    loadUserData();
-    loadExams();
-  }, []);
-
-  useEffect(() => {
-    if (isExamStarted && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            handleSubmitExam();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [isExamStarted, timeLeft]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
@@ -86,9 +66,9 @@ export default function StudentExamPage() {
       console.error('Error loading user data:', error);
       router.push('/');
     }
-  };
+  }, [router]);
 
-  const loadExams = async () => {
+  const loadExams = useCallback(async () => {
     try {
       const response = await fetch('/api/exams/list');
       const data = await response.json();
@@ -112,7 +92,69 @@ export default function StudentExamPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  const handleSubmitExam = useCallback(async () => {
+    if (!selectedExam || !user) return;
+
+    try {
+      const response = await fetch('/api/exam-results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exam_id: selectedExam.id,
+          user_id: user.id,
+          answers: answers,
+          time_taken_minutes: Math.floor((selectedExam.duration_minutes * 60 - timeLeft) / 60)
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsExamCompleted(true);
+        setIsExamStarted(false);
+        toast({
+          title: "Ujian Selesai!",
+          description: `Skor: ${data.data.score}/${data.data.max_score}`,
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Gagal submit ujian",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting exam:', error);
+      toast({
+        title: "Error",
+        description: "Gagal submit ujian",
+        variant: "destructive"
+      });
+    }
+  }, [selectedExam, user, answers, timeLeft, toast]);
+
+  useEffect(() => {
+    loadUserData();
+    loadExams();
+  }, [loadUserData, loadExams]);
+
+  useEffect(() => {
+    if (isExamStarted && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            handleSubmitExam();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [isExamStarted, timeLeft, handleSubmitExam]);
 
   const loadExamQuestions = async (examId: string) => {
     try {
@@ -164,47 +206,6 @@ export default function StudentExamPage() {
     }
   };
 
-  const handleSubmitExam = async () => {
-    if (!selectedExam || !user) return;
-
-    try {
-      const response = await fetch('/api/exam-results', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          exam_id: selectedExam.id,
-          user_id: user.id,
-          answers: answers,
-          time_taken_minutes: (selectedExam.duration_minutes || 60) - timeLeft
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        setIsExamCompleted(true);
-        toast({
-          title: "Berhasil",
-          description: "Ujian berhasil disubmit!",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Gagal submit ujian",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error submitting exam:', error);
-      toast({
-        title: "Error",
-        description: "Gagal submit ujian",
-        variant: "destructive"
-      });
-    }
-  };
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);

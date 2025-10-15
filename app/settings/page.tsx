@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +40,34 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  const loadSettings = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/attendance/settings');
+      const data = await response.json();
+      
+      if (data.success) {
+        setSettings(data.data);
+        setFormData({
+          name: data.data.name,
+          jam_masuk: data.data.jam_masuk,
+          jam_terlambat: data.data.jam_terlambat,
+          jam_pulang: data.data.jam_pulang,
+          toleransi_menit: data.data.toleransi_menit
+        });
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat pengaturan",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
     // Check for saved user on component mount
     const savedUser = localStorage.getItem('user');
@@ -66,36 +94,7 @@ export default function SettingsPage() {
       router.push('/');
     }
     setIsLoading(false);
-  }, [toast, router]);
-
-
-  const loadSettings = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/attendance/settings');
-      const data = await response.json();
-      
-      if (data.success) {
-        setSettings(data.data);
-        setFormData({
-          name: data.data.name,
-          jam_masuk: data.data.jam_masuk,
-          jam_terlambat: data.data.jam_terlambat,
-          jam_pulang: data.data.jam_pulang,
-          toleransi_menit: data.data.toleransi_menit
-        });
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-      toast({
-        title: "Error",
-        description: "Gagal memuat pengaturan",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [toast, router, loadSettings]);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();

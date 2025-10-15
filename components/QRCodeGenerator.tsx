@@ -36,12 +36,7 @@ export default function QRCodeGenerator({
           dark: '#000000',
           light: '#FFFFFF'
         },
-        errorCorrectionLevel: 'H', // High error correction for better scanning
-        type: 'image/png',
-        quality: 0.92,
-        rendererOpts: {
-          quality: 0.92
-        }
+        errorCorrectionLevel: 'H' // High error correction for better scanning
       });
       
       console.log('✅ QR Code generated successfully:', data);
