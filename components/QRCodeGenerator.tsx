@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, QrCode } from 'lucide-react';
+import QRCodeLib from 'qrcode';
 
 interface QRCodeGeneratorProps {
   data: string;
@@ -22,49 +23,53 @@ export default function QRCodeGenerator({
 }: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const generateQRCode = useCallback(() => {
+  const generateQRCode = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    try {
+      // Generate QR code using the qrcode library
+      await QRCodeLib.toCanvas(canvas, data, {
+        width: size,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
+      });
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      // Fallback to simple pattern if QR generation fails
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // Set canvas size
-    canvas.width = size;
-    canvas.height = size;
+      // Set canvas size
+      canvas.width = size;
+      canvas.height = size;
 
-    // Clear canvas
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, size);
+      // Clear canvas
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
 
-    // Generate QR-like pattern (simplified version)
-    const moduleSize = size / 25; // 25x25 grid
-    const dataString = data;
-    
-    // Create a simple QR-like pattern
-    ctx.fillStyle = '#000000';
-    
-    // Position markers (corners)
-    drawPositionMarker(ctx, 0, 0, moduleSize);
-    drawPositionMarker(ctx, size - 7 * moduleSize, 0, moduleSize);
-    drawPositionMarker(ctx, 0, size - 7 * moduleSize, moduleSize);
-    
-    // Generate data pattern based on string
-    for (let i = 0; i < dataString.length; i++) {
-      const charCode = dataString.charCodeAt(i);
-      const x = (i % 20) * moduleSize + 7 * moduleSize;
-      const y = Math.floor(i / 20) * moduleSize + 7 * moduleSize;
+      // Generate simple pattern as fallback
+      const moduleSize = size / 25;
+      ctx.fillStyle = '#000000';
       
-      if (charCode % 2 === 0) {
-        ctx.fillRect(x, y, moduleSize, moduleSize);
-      }
-    }
-    
-    // Add timing patterns
-    for (let i = 0; i < 25; i++) {
-      if (i % 2 === 0) {
-        ctx.fillRect(6 * moduleSize, i * moduleSize, moduleSize, moduleSize);
-        ctx.fillRect(i * moduleSize, 6 * moduleSize, moduleSize, moduleSize);
+      // Position markers (corners)
+      drawPositionMarker(ctx, 0, 0, moduleSize);
+      drawPositionMarker(ctx, size - 7 * moduleSize, 0, moduleSize);
+      drawPositionMarker(ctx, 0, size - 7 * moduleSize, moduleSize);
+      
+      // Generate data pattern based on string
+      for (let i = 0; i < data.length; i++) {
+        const charCode = data.charCodeAt(i);
+        const x = (i % 20) * moduleSize + 7 * moduleSize;
+        const y = Math.floor(i / 20) * moduleSize + 7 * moduleSize;
+        
+        if (charCode % 2 === 0) {
+          ctx.fillRect(x, y, moduleSize, moduleSize);
+        }
       }
     }
   }, [data, size]);

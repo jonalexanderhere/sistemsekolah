@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { QrCode, Camera, CameraOff, CheckCircle, AlertCircle } from 'lucide-react';
+import jsQR from 'jsqr';
 
 interface QRScannerProps {
   onQRScanned: (data: string) => void;
@@ -184,12 +185,12 @@ export default function QRScanner({ onQRScanned, className = '' }: QRScannerProp
       // Draw video frame to canvas
       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
-      // Simple QR detection simulation
-      // In a real implementation, you would use a QR code library like qr-scanner
+      // Real QR detection using jsQR library
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       
-      // Simulate QR detection by checking for patterns
-      const qrData = simulateQRDetection(imageData);
+      // Use jsQR library for actual QR code detection
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      const qrData = code ? code.data : null;
       
       if (qrData && Date.now() - lastScanTime > 2000) { // Prevent duplicate scans
         setLastScanTime(Date.now());
@@ -202,18 +203,6 @@ export default function QRScanner({ onQRScanned, className = '' }: QRScannerProp
     scanIntervalRef.current = interval;
   }, [onQRScanned, lastScanTime]);
 
-  const simulateQRDetection = (imageData: ImageData): string | null => {
-    // This is a simplified simulation
-    // In a real app, you'd use a proper QR code library
-    
-    // For demo purposes, we'll simulate finding a QR code occasionally
-    const now = Date.now();
-    if (now % 5000 < 100) { // Simulate detection every 5 seconds
-      return `STUDENT_${Math.floor(Math.random() * 1000)}`;
-    }
-    
-    return null;
-  };
 
   // Cleanup on unmount
   useEffect(() => {
