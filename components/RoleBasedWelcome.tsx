@@ -151,18 +151,11 @@ export default function RoleBasedWelcome({ user }: RoleBasedWelcomeProps) {
             color: 'bg-blue-100 text-blue-600'
           },
           {
-            title: 'QR Attendance',
-            description: 'Mark attendance with QR Code',
-            icon: <QrCode className="h-6 w-6" />,
-            action: () => router.push('/qr-attendance'),
-            color: 'bg-green-100 text-green-600'
-          },
-          {
             title: 'Download QR Code',
             description: 'Get your personal QR Code',
             icon: <QrCode className="h-6 w-6" />,
-            action: () => router.push('/qr-attendance'),
-            color: 'bg-orange-100 text-orange-600'
+            action: () => router.push('/student-qr'),
+            color: 'bg-green-100 text-green-600'
           },
           {
             title: 'Announcements',

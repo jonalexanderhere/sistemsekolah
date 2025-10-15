@@ -18,7 +18,8 @@ import {
   FileText,
   Calendar,
   Award,
-  TrendingUp
+  TrendingUp,
+  QrCode
 } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
 
@@ -451,15 +452,40 @@ export default function TeacherDashboard() {
             </CardContent>
           </Card>
 
+          {/* QR Scanner */}
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigateTo('/teacher-dashboard/qr-scanner')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="h-5 w-5 text-green-600" />
+                QR Scanner
+              </CardTitle>
+              <CardDescription>
+                Scan QR code siswa untuk absensi
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-600">Scan QR Code</p>
+                  <p className="text-sm text-gray-600">Absensi cepat & mudah</p>
+                </div>
+                <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Buka Scanner
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Attendance */}
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigateTo('/attendance')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-orange-600" />
-                Absensi
+                Data Absensi
               </CardTitle>
               <CardDescription>
-                Monitor dan kelola absensi siswa
+                Monitor dan kelola data absensi siswa
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -470,7 +496,7 @@ export default function TeacherDashboard() {
                 </div>
                 <Button size="sm">
                   <Eye className="h-4 w-4 mr-2" />
-                  Lihat Absensi
+                  Lihat Data
                 </Button>
               </div>
             </CardContent>
