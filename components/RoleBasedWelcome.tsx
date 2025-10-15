@@ -12,7 +12,7 @@ import {
   BarChart3, 
   Settings,
   Calendar,
-  Camera,
+  QrCode,
   ClipboardList,
   Award,
   Bell
@@ -151,17 +151,17 @@ export default function RoleBasedWelcome({ user }: RoleBasedWelcomeProps) {
             color: 'bg-blue-100 text-blue-600'
           },
           {
-            title: 'Face Registration',
-            description: user.has_face ? 'Update face data' : 'Register your face',
-            icon: <Camera className="h-6 w-6" />,
-            action: () => router.push('/face-register'),
+            title: 'QR Attendance',
+            description: 'Mark attendance with QR Code',
+            icon: <QrCode className="h-6 w-6" />,
+            action: () => router.push('/qr-attendance'),
             color: 'bg-green-100 text-green-600'
           },
           {
-            title: 'Face Attendance',
-            description: 'Mark attendance with face',
-            icon: <Camera className="h-6 w-6" />,
-            action: () => router.push('/face-attendance'),
+            title: 'Download QR Code',
+            description: 'Get your personal QR Code',
+            icon: <QrCode className="h-6 w-6" />,
+            action: () => router.push('/qr-attendance'),
             color: 'bg-orange-100 text-orange-600'
           },
           {
@@ -326,10 +326,10 @@ export default function RoleBasedWelcome({ user }: RoleBasedWelcomeProps) {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="text-center p-4 bg-green-50 rounded-lg">
-                <Calendar className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <p className="font-medium">Attendance Status</p>
+                <QrCode className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                <p className="font-medium">QR Code System</p>
                 <p className="text-sm text-gray-600">
-                  Face: {user.has_face ? 'Registered ✓' : 'Not Registered ✗'}
+                  Quick & Easy Attendance
                 </p>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">

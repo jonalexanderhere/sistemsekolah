@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Download, FileText, Calendar, Search, Filter } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Calendar, Search, Filter, QrCode } from 'lucide-react';
 import { exportAttendanceToExcel, exportAttendanceToPDF, AttendanceData } from '@/lib/export';
 
 export default function AttendancePage() {
@@ -296,10 +296,17 @@ export default function AttendancePage() {
             </Card>
           </div>
 
-          {/* Export Buttons */}
+          {/* Action Buttons */}
           <Card className="mb-6">
             <CardContent className="p-6">
-              <div className="flex gap-4">
+              <div className="flex gap-4 flex-wrap">
+                <Button 
+                  onClick={() => router.push('/qr-attendance')} 
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <QrCode className="h-4 w-4" />
+                  QR Attendance
+                </Button>
                 <Button onClick={handleExportExcel} className="flex items-center gap-2">
                   <Download className="h-4 w-4" />
                   Export Excel

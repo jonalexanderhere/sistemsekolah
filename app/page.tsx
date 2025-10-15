@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { GraduationCap, Users, Calendar, Bell, Camera, BookOpen, Zap, Shield, Smartphone } from 'lucide-react';
+import { GraduationCap, Users, Calendar, Bell, QrCode, BookOpen, Zap, Shield, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import LogoutButton from '@/components/LogoutButton';
 import RoleBasedWelcome from '@/components/RoleBasedWelcome';
@@ -161,16 +161,16 @@ export default function HomePage() {
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 Sistem Absensi Pintar dengan
-                <span className="text-blue-600 block mt-2">Face Recognition AI</span>
+                <span className="text-blue-600 block mt-2">QR Code Technology</span>
               </h2>
               <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
-                Solusi modern untuk manajemen kehadiran siswa dengan teknologi pengenalan wajah yang akurat dan efisien
+                Solusi modern untuk manajemen kehadiran siswa dengan teknologi QR Code yang cepat, mudah, dan akurat
               </p>
               
               {/* Feature badges */}
               <div className="flex flex-wrap justify-center gap-3 mb-12">
                 <span className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                  Real-time AI
+                  QR Code Scan
                 </span>
                 <span className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium">
                   Mobile Ready
@@ -179,7 +179,7 @@ export default function HomePage() {
                   Secure
                 </span>
                 <span className="px-4 py-2 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
-                  Fast
+                  Fast & Easy
                 </span>
               </div>
             </div>
@@ -308,11 +308,11 @@ export default function HomePage() {
               <Card className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardContent className="p-8">
                   <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Camera className="h-8 w-8 text-blue-600" />
+                    <QrCode className="h-8 w-8 text-blue-600" />
                   </div>
-                  <h4 className="text-xl font-semibold text-gray-900 mb-4">AI Face Recognition</h4>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-4">QR Code Scanner</h4>
                   <p className="text-gray-600 leading-relaxed">
-                    Absensi otomatis dengan teknologi AI yang akurat dan cepat untuk efisiensi maksimal
+                    Absensi cepat dan mudah dengan teknologi QR Code yang akurat dan efisien
                   </p>
                 </CardContent>
               </Card>
