@@ -49,12 +49,35 @@ export default function QRScanner({ onQRScanned, className = '' }: QRScannerProp
         throw new Error('CAMERA_NOT_SUPPORTED');
       }
 
-      // Try different camera configurations
+      // Try different camera configurations for better quality
       const configs = [
-        { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } },
-        { video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } },
-        { video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } },
-        { video: { facingMode: 'environment' } },
+        { video: { 
+            facingMode: 'environment', 
+            width: { ideal: 1920, min: 1280 }, 
+            height: { ideal: 1080, min: 720 },
+            frameRate: { ideal: 30, min: 15 }
+          } 
+        },
+        { video: { 
+            facingMode: 'environment', 
+            width: { ideal: 1280, min: 640 }, 
+            height: { ideal: 720, min: 480 },
+            frameRate: { ideal: 30, min: 15 }
+          } 
+        },
+        { video: { 
+            facingMode: 'user', 
+            width: { ideal: 1280, min: 640 }, 
+            height: { ideal: 720, min: 480 },
+            frameRate: { ideal: 30, min: 15 }
+          } 
+        },
+        { video: { 
+            facingMode: 'environment',
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          } 
+        },
         { video: true }
       ];
 
@@ -264,8 +287,8 @@ export default function QRScanner({ onQRScanned, className = '' }: QRScannerProp
   }, []);
 
   return (
-    <Card className={className}>
-      <CardHeader>
+    <Card className={`${className} overflow-hidden`}>
+      <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
           <QrCode className="h-5 w-5" />
           QR Code Scanner
@@ -302,36 +325,64 @@ export default function QRScanner({ onQRScanned, className = '' }: QRScannerProp
           </div>
         )}
 
-        {/* Camera View */}
-        <div className="relative bg-gray-100 rounded-lg overflow-hidden min-h-[300px]">
+        {/* Camera View - Full Screen */}
+        <div className="relative bg-black rounded-lg overflow-hidden w-full h-[500px] md:h-[600px]">
           <video
             ref={videoRef}
             autoPlay
             muted
             playsInline
-            className="w-full h-auto"
-            style={{ maxHeight: '400px' }}
+            className="w-full h-full object-cover"
+            style={{ 
+              minHeight: '500px',
+              maxHeight: '600px',
+              objectFit: 'cover',
+              objectPosition: 'center'
+            }}
           />
           <canvas
             ref={canvasRef}
-            className="absolute top-0 left-0 pointer-events-none"
+            className="absolute top-0 left-0 pointer-events-none w-full h-full"
+            style={{ 
+              width: '100%',
+              height: '100%'
+            }}
           />
           
           {/* Overlay when scanner is not active */}
           {!isScanning && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-              <div className="text-center text-gray-600">
-                <QrCode className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">Scanner belum aktif</p>
-                <p className="text-sm">Klik &quot;Mulai Scanner&quot; untuk memulai</p>
+            <div className="absolute inset-0 flex items-center justify-center bg-black">
+              <div className="text-center text-white">
+                <QrCode className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <p className="text-xl font-medium">Scanner belum aktif</p>
+                <p className="text-sm opacity-75">Klik &quot;Mulai Scanner&quot; untuk memulai</p>
               </div>
             </div>
           )}
 
           {/* Scanning indicator */}
           {isScanning && scannerStatus === 'active' && (
-            <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
-              Scanning...
+            <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg">
+              🔍 Scanning...
+            </div>
+          )}
+
+          {/* QR Code detection overlay */}
+          {isScanning && scannerStatus === 'active' && (
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Scanning frame */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-green-400 rounded-lg">
+                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400 rounded-tl-lg"></div>
+                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400 rounded-tr-lg"></div>
+                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400 rounded-bl-lg"></div>
+                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400 rounded-br-lg"></div>
+              </div>
+              
+              {/* Instructions */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center text-white">
+                <p className="text-sm font-medium">Arahkan kamera ke QR Code</p>
+                <p className="text-xs opacity-75">Pastikan QR Code dalam frame hijau</p>
+              </div>
             </div>
           )}
         </div>

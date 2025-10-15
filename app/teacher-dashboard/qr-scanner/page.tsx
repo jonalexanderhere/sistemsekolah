@@ -210,12 +210,14 @@ export default function TeacherQRScannerPage() {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* QR Scanner */}
+            {/* QR Scanner - Full Width */}
             <div className="lg:col-span-2">
-              <QRScanner
-                onQRScanned={handleQRScanned}
-                className="mb-6"
-              />
+              <div className="mb-6">
+                <QRScanner
+                  onQRScanned={handleQRScanned}
+                  className="w-full"
+                />
+              </div>
 
               {/* Last Scanned Student */}
               {lastScannedStudent && (
