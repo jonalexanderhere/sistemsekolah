@@ -317,7 +317,7 @@ export default function QRAttendancePage() {
                         <div className="text-center text-gray-600">
                           <QrCode className="h-12 w-12 mx-auto mb-4 opacity-50" />
                           <p className="text-lg font-medium">Scanner belum aktif</p>
-                          <p className="text-sm">Klik "Mulai Scanner" untuk memulai</p>
+                          <p className="text-sm">Klik &quot;Mulai Scanner&quot; untuk memulai</p>
                         </div>
                       </div>
                     )}

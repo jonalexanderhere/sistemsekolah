@@ -524,7 +524,7 @@ export default function AdminDashboard() {
                       <span className="font-semibold">{stats?.activeUsers || 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Today's Attendance</span>
+                      <span className="text-gray-600">Today&apos;s Attendance</span>
                       <span className="font-semibold">{stats?.totalAttendanceToday || 0}</span>
                     </div>
                   </div>

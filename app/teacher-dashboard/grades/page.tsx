@@ -678,7 +678,7 @@ export default function GradesPage() {
                   <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">Belum ada data nilai</p>
                   <p className="text-sm text-gray-400 mt-2">
-                    Klik "Tambah Nilai" untuk menambahkan data nilai siswa
+                    Klik &quot;Tambah Nilai&quot; untuk menambahkan data nilai siswa
                   </p>
                 </div>
               )}

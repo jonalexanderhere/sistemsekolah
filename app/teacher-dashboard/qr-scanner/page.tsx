@@ -419,7 +419,7 @@ export default function TeacherQRScannerPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-start gap-2">
                       <span className="bg-green-100 text-green-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">1</span>
-                      <p>Klik "Mulai Scanner" untuk mengaktifkan kamera</p>
+                      <p>Klik &quot;Mulai Scanner&quot; untuk mengaktifkan kamera</p>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="bg-green-100 text-green-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">2</span>

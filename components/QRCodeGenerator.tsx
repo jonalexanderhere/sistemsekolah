@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, QrCode } from 'lucide-react';
@@ -22,11 +22,7 @@ export default function QRCodeGenerator({
 }: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    generateQRCode();
-  }, [data, size]);
-
-  const generateQRCode = () => {
+  const generateQRCode = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -71,7 +67,11 @@ export default function QRCodeGenerator({
         ctx.fillRect(i * moduleSize, 6 * moduleSize, moduleSize, moduleSize);
       }
     }
-  };
+  }, [data, size]);
+
+  useEffect(() => {
+    generateQRCode();
+  }, [generateQRCode]);
 
   const drawPositionMarker = (ctx: CanvasRenderingContext2D, x: number, y: number, moduleSize: number) => {
     // Outer square

@@ -718,7 +718,7 @@ export default function ExamQuestionsPage({ params }: { params: { id: string } }
                   <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">Belum ada soal dalam ujian ini</p>
                   <p className="text-sm text-gray-400 mt-2">
-                    Klik "Tambah Soal ke Ujian" untuk menambahkan soal
+                    Klik &quot;Tambah Soal ke Ujian&quot; untuk menambahkan soal
                   </p>
                 </div>
               )}

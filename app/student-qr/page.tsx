@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,11 +24,7 @@ export default function StudentQRPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       // Get user from localStorage
       const savedUser = localStorage.getItem('user');
@@ -48,7 +44,11 @@ export default function StudentQRPage() {
       console.error('Error loading user data:', error);
       router.push('/');
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    loadUserData();
+  }, [loadUserData]);
 
   const downloadQRCode = () => {
     if (!user) return;
@@ -246,7 +246,7 @@ export default function StudentQRPage() {
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start gap-3">
                       <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold">1</span>
-                      <p>Download QR code dengan mengklik tombol "Download QR Code"</p>
+                      <p>Download QR code dengan mengklik tombol &quot;Download QR Code&quot;</p>
                     </div>
                     <div className="flex items-start gap-3">
                       <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold">2</span>
