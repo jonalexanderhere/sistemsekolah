@@ -26,12 +26,13 @@ export async function GET(request: NextRequest) {
         id,
         judul,
         isi,
-        tanggal,
+        priority,
+        target_audience,
+        is_active,
         created_at,
-        users (
-          nama
-        )
+        created_by
       `)
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 

@@ -26,31 +26,23 @@ export async function GET(request: NextRequest) {
       .from('exams')
       .select(`
         id,
-        judul,
-        deskripsi,
-        mata_pelajaran,
-        kelas,
-        tanggal_mulai,
-        tanggal_selesai,
-        durasi_menit,
-        max_attempts,
-        passing_score,
+        title,
+        description,
+        subject,
+        duration_minutes,
+        total_questions,
+        max_score,
+        start_date,
+        end_date,
         is_active,
-        is_published,
         created_at,
-        users (
-          nama
-        )
+        created_by
       `)
       .order('created_at', { ascending: false });
 
     // Apply filters
     if (isActive !== null) {
       query = query.eq('is_active', isActive === 'true');
-    }
-
-    if (isPublished !== null) {
-      query = query.eq('is_published', isPublished === 'true');
     }
 
     // Apply pagination
