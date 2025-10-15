@@ -26,26 +26,19 @@ export async function GET(request: NextRequest) {
       .from('questions')
       .select(`
         id,
-        exam_id,
         question_text,
         question_type,
         options,
-        points,
-        order_index,
-        time_limit_seconds,
         correct_answer,
-        explanation,
-        is_active,
+        points,
+        subject,
+        difficulty,
+        created_by,
         created_at
       `)
-      .order('order_index', { ascending: true })
       .order('created_at', { ascending: false });
 
     // Apply filters
-    if (examId) {
-      query = query.eq('exam_id', examId);
-    }
-
     if (questionType) {
       query = query.eq('question_type', questionType);
     }
@@ -68,7 +61,6 @@ export async function GET(request: NextRequest) {
       .from('questions')
       .select('id', { count: 'exact', head: true });
 
-    if (examId) countQuery = countQuery.eq('exam_id', examId);
     if (questionType) countQuery = countQuery.eq('question_type', questionType);
 
     const { count, error: countError } = await countQuery;
@@ -101,18 +93,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      exam_id,
       question_text,
       question_type,
       options,
-      points,
-      order_index,
-      time_limit_seconds,
       correct_answer,
-      explanation
+      points,
+      subject,
+      difficulty,
+      created_by
     } = body;
 
-    if (!exam_id || !question_text || !question_type || !points) {
+    if (!question_text || !question_type || !points || !created_by) {
       return NextResponse.json(
         { error: 'Data wajib diisi' },
         { status: 400 }
@@ -122,16 +113,14 @@ export async function POST(request: NextRequest) {
     const { data: questionData, error } = await supabaseAdmin
       .from('questions')
       .insert({
-        exam_id,
         question_text,
         question_type,
         options: options || null,
-        points: parseFloat(points),
-        order_index: order_index || 0,
-        time_limit_seconds: time_limit_seconds || null,
         correct_answer: correct_answer || null,
-        explanation: explanation || null,
-        is_active: true
+        points: parseFloat(points),
+        subject: subject || null,
+        difficulty: difficulty || 'medium',
+        created_by
       })
       .select()
       .single();
@@ -139,7 +128,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating question:', error);
       return NextResponse.json(
-        { error: 'Gagal menyimpan soal' },
+        { error: 'Gagal menyimpan soal', details: error.message },
         { status: 500 }
       );
     }
@@ -153,7 +142,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Question creation error:', error);
     return NextResponse.json(
-      { error: 'Terjadi kesalahan server' },
+      { error: 'Terjadi kesalahan server', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

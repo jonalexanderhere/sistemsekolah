@@ -27,13 +27,14 @@ export async function GET(request: NextRequest) {
       .from('grades')
       .select(`
         id,
-        student_id,
-        assignment_name,
+        user_id,
         subject,
-        grade,
-        max_grade,
-        date,
-        notes,
+        assignment_type,
+        score,
+        max_score,
+        semester,
+        academic_year,
+        teacher_notes,
         created_at,
         users!inner (
           id,
@@ -46,11 +47,11 @@ export async function GET(request: NextRequest) {
 
     // Apply filters
     if (teacherId) {
-      query = query.eq('teacher_id', teacherId);
+      query = query.eq('created_by', teacherId);
     }
 
     if (studentId) {
-      query = query.eq('student_id', studentId);
+      query = query.eq('user_id', studentId);
     }
 
     if (subject) {
@@ -75,8 +76,8 @@ export async function GET(request: NextRequest) {
       .from('grades')
       .select('id', { count: 'exact', head: true });
 
-    if (teacherId) countQuery = countQuery.eq('teacher_id', teacherId);
-    if (studentId) countQuery = countQuery.eq('student_id', studentId);
+    if (teacherId) countQuery = countQuery.eq('created_by', teacherId);
+    if (studentId) countQuery = countQuery.eq('user_id', studentId);
     if (subject) countQuery = countQuery.eq('subject', subject);
 
     const { count, error: countError } = await countQuery;
@@ -108,9 +109,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { student_id, assignment_name, subject, grade, max_grade, date, notes, teacher_id } = body;
+    const { user_id, subject, assignment_type, score, max_score, semester, academic_year, teacher_notes, created_by } = body;
 
-    if (!student_id || !assignment_name || !subject || !grade || !teacher_id) {
+    if (!user_id || !subject || !assignment_type || !score || !created_by) {
       return NextResponse.json(
         { error: 'Data wajib diisi' },
         { status: 400 }
@@ -120,14 +121,15 @@ export async function POST(request: NextRequest) {
     const { data: gradeData, error } = await supabaseAdmin
       .from('grades')
       .insert({
-        student_id,
-        teacher_id,
-        assignment_name,
+        user_id,
         subject,
-        grade: parseFloat(grade),
-        max_grade: parseFloat(max_grade) || 100,
-        date: date || new Date().toISOString().split('T')[0],
-        notes: notes || null
+        assignment_type,
+        score: parseFloat(score),
+        max_score: parseFloat(max_score) || 100,
+        semester: semester || 'Ganjil',
+        academic_year: academic_year || '2024/2025',
+        teacher_notes: teacher_notes || null,
+        created_by
       })
       .select()
       .single();
@@ -135,7 +137,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating grade:', error);
       return NextResponse.json(
-        { error: 'Gagal menyimpan nilai' },
+        { error: 'Gagal menyimpan nilai', details: error.message },
         { status: 500 }
       );
     }
@@ -149,7 +151,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Grade creation error:', error);
     return NextResponse.json(
-      { error: 'Terjadi kesalahan server' },
+      { error: 'Terjadi kesalahan server', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

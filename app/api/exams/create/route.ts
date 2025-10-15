@@ -29,9 +29,9 @@ export async function POST(request: NextRequest) {
       created_by
     } = await request.json();
 
-    if (!title || !subject) {
+    if (!title) {
       return NextResponse.json(
-        { error: 'Title dan subject harus diisi' },
+        { error: 'Title harus diisi' },
         { status: 400 }
       );
     }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Prepare exam data for V3 schema
     const examData: any = {
       title,
-      subject,
+      subject: subject || 'General',
       duration_minutes: duration_minutes || 60,
       total_questions: total_questions || 0,
       max_score: max_score || 100,
