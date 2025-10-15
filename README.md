@@ -322,15 +322,15 @@ graph TB
 ### API Endpoints
 ```mermaid
 graph LR
-    A[API Routes] --> B[/api/auth/login]
-    A --> C[/api/users/list]
-    A --> D[/api/attendance/mark]
-    A --> E[/api/attendance/list]
-    A --> F[/api/grades/list]
-    A --> G[/api/exams/create]
-    A --> H[/api/qr/generate]
-    A --> I[/api/qr/scan]
-    A --> J[/api/notifications]
+    A[API Routes] --> B["/api/auth/login"]
+    A --> C["/api/users/list"]
+    A --> D["/api/attendance/mark"]
+    A --> E["/api/attendance/list"]
+    A --> F["/api/grades/list"]
+    A --> G["/api/exams/create"]
+    A --> H["/api/qr/generate"]
+    A --> I["/api/qr/scan"]
+    A --> J["/api/notifications"]
 ```
 
 ## 📱 Mobile Responsive Design
@@ -338,19 +338,19 @@ graph LR
 ### Breakpoints
 ```mermaid
 graph LR
-    A[Mobile < 768px] --> B[Tablet 768px-1024px]
-    B --> C[Desktop > 1024px]
+    A["Mobile < 768px"] --> B["Tablet 768px-1024px"]
+    B --> C["Desktop > 1024px"]
     
-    A --> D[Single Column Layout]
-    A --> E[Touch-friendly Buttons]
-    A --> F[Mobile Navigation]
+    A --> D["Single Column Layout"]
+    A --> E["Touch-friendly Buttons"]
+    A --> F["Mobile Navigation"]
     
-    B --> G[Two Column Layout]
-    B --> H[Medium Components]
+    B --> G["Two Column Layout"]
+    B --> H["Medium Components"]
     
-    C --> I[Multi Column Layout]
-    C --> J[Full Dashboard]
-    C --> K[Advanced Features]
+    C --> I["Multi Column Layout"]
+    C --> J["Full Dashboard"]
+    C --> K["Advanced Features"]
 ```
 
 ## 🚀 Installation & Setup
