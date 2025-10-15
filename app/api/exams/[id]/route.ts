@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Load environment variables with fallback
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kmmdnlbbeezsweqsxqzv.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttbWRubGJiZWV6c3dlcXN4cXp2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTQwNTU2MCwiZXhwIjoyMDc0OTgxNTYwfQ.TZzM-jc-AigFxJw6fOnIUKzk_x606gCwRR0lS-UUqh0';
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -12,21 +23,17 @@ export async function GET(
       .from('exams')
       .select(`
         id,
-        judul,
-        deskripsi,
-        mata_pelajaran,
-        kelas,
-        tanggal_mulai,
-        tanggal_selesai,
-        durasi_menit,
-        max_attempts,
-        passing_score,
+        title,
+        description,
+        subject,
+        duration_minutes,
+        total_questions,
+        max_score,
+        start_date,
+        end_date,
         is_active,
-        is_published,
         created_at,
-        users (
-          nama
-        )
+        created_by
       `)
       .eq('id', params.id)
       .single();
@@ -58,49 +65,45 @@ export async function PUT(
 ) {
   try {
     const {
-      judul,
-      deskripsi,
-      mata_pelajaran,
-      kelas,
-      tanggal_mulai,
-      tanggal_selesai,
-      durasi_menit,
-      max_attempts,
-      passing_score,
-      is_active,
-      is_published
+      title,
+      description,
+      subject,
+      duration_minutes,
+      total_questions,
+      max_score,
+      start_date,
+      end_date,
+      is_active
     } = await request.json();
 
-    if (!judul || !mata_pelajaran) {
+    if (!title || !subject) {
       return NextResponse.json(
-        { error: 'Judul dan mata pelajaran harus diisi' },
+        { error: 'Title dan subject harus diisi' },
         { status: 400 }
       );
     }
 
-    // Prepare update data
+    // Prepare update data for V3 schema
     const updateData: any = {
-      judul,
-      mata_pelajaran,
-      durasi_menit: durasi_menit || 60,
-      max_attempts: max_attempts || 1,
-      passing_score: passing_score || 60.0,
+      title,
+      subject,
+      duration_minutes: duration_minutes || 60,
+      total_questions: total_questions || 0,
+      max_score: max_score || 100,
       is_active: is_active !== undefined ? is_active : true,
-      is_published: is_published !== undefined ? is_published : false,
       updated_at: new Date().toISOString()
     };
 
     // Add optional fields
-    if (deskripsi !== undefined) updateData.deskripsi = deskripsi;
-    if (kelas !== undefined) updateData.kelas = kelas;
+    if (description !== undefined) updateData.description = description;
 
     // Handle dates
-    if (tanggal_mulai) {
-      updateData.tanggal_mulai = new Date(tanggal_mulai).toISOString();
+    if (start_date) {
+      updateData.start_date = new Date(start_date).toISOString();
     }
 
-    if (tanggal_selesai) {
-      updateData.tanggal_selesai = new Date(tanggal_selesai).toISOString();
+    if (end_date) {
+      updateData.end_date = new Date(end_date).toISOString();
     }
 
     const { data: exam, error } = await supabaseAdmin
@@ -109,25 +112,24 @@ export async function PUT(
       .eq('id', params.id)
       .select(`
         id,
-        judul,
-        deskripsi,
-        mata_pelajaran,
-        kelas,
-        tanggal_mulai,
-        tanggal_selesai,
-        durasi_menit,
-        max_attempts,
-        passing_score,
+        title,
+        description,
+        subject,
+        duration_minutes,
+        total_questions,
+        max_score,
+        start_date,
+        end_date,
         is_active,
-        is_published,
-        created_at
+        created_at,
+        created_by
       `)
       .single();
 
     if (error) {
       console.error('Error updating exam:', error);
       return NextResponse.json(
-        { error: 'Gagal memperbarui ujian' },
+        { error: 'Gagal memperbarui ujian', details: error.message },
         { status: 500 }
       );
     }
@@ -147,7 +149,7 @@ export async function PUT(
   } catch (error) {
     console.error('Update exam error:', error);
     return NextResponse.json(
-      { error: 'Terjadi kesalahan server' },
+      { error: 'Terjadi kesalahan server', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
