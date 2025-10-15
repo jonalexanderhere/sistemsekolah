@@ -98,6 +98,7 @@ CREATE TABLE users (
     nama VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('siswa', 'guru', 'admin')),
     nisn VARCHAR(20) UNIQUE,
+    nip VARCHAR(20) UNIQUE,
     identitas VARCHAR(50) UNIQUE,
     email VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255),
@@ -507,8 +508,8 @@ INSERT INTO users (id, nama, role, identitas, email, password_hash, is_active, i
 ('550e8400-e29b-41d4-a716-446655440001', 'Administrator', 'admin', 'ADMIN001', 'admin@sekolah.com', '$2a$10$rQZ8K9L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2G3H4I5J6K', true, true);
 
 -- Insert sample teacher
-INSERT INTO users (id, nama, role, identitas, email, password_hash, class_name, is_active, is_verified) VALUES 
-('550e8400-e29b-41d4-a716-446655440002', 'Guru Matematika', 'guru', 'GURU001', 'guru@sekolah.com', '$2a$10$rQZ8K9L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2G3H4I5J6K', 'XII TJKT 2', true, true);
+INSERT INTO users (id, nama, role, nip, identitas, email, password_hash, class_name, is_active, is_verified) VALUES 
+('550e8400-e29b-41d4-a716-446655440002', 'Guru Matematika', 'guru', 'GURU001', 'GURU001', 'guru@sekolah.com', '$2a$10$rQZ8K9L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2G3H4I5J6K', 'XII TJKT 2', true, true);
 
 -- Insert sample students
 INSERT INTO users (id, nama, role, nisn, class_name, is_active, is_verified) VALUES 

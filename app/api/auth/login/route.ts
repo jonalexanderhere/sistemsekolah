@@ -14,6 +14,13 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 
 export const dynamic = 'force-dynamic';
 
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ 
+    message: 'Login API is working!',
+    timestamp: new Date().toISOString()
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { nisn, nip, identitas } = await request.json();
@@ -31,11 +38,15 @@ export async function POST(request: NextRequest) {
 
     if (nisn || nip) {
       // Try to find by NISN/NIP first
-      const { data: userData, error: userError } = await supabaseAdmin
-        .from('users')
-        .select('*')
-        .eq('nisn', nisn || nip)
-        .single();
+      let query = supabaseAdmin.from('users').select('*');
+      
+      if (nisn) {
+        query = query.eq('nisn', nisn);
+      } else if (nip) {
+        query = query.eq('nip', nip);
+      }
+      
+      const { data: userData, error: userError } = await query.single();
       
       user = userData;
       error = userError;
