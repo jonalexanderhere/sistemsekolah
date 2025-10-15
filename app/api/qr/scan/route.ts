@@ -133,21 +133,12 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (supabaseError) {
-      console.warn('Supabase failed, using fallback:', supabaseError);
-      
-      // Fallback: return mock student data
+      console.error('❌ Supabase connection failed:', supabaseError);
       return NextResponse.json({
-        success: true,
-        data: {
-          student: {
-            id: `student-${nisn}`,
-            nama: `Student ${nisn}`,
-            nisn: nisn,
-            class_name: 'XII TJKT 2'
-          }
-        },
-        source: 'fallback'
-      });
+        success: false,
+        error: 'Database connection failed',
+        details: supabaseError.message
+      }, { status: 500 });
     }
 
   } catch (error) {

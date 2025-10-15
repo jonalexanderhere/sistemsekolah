@@ -95,52 +95,13 @@ export async function POST(request: NextRequest) {
         });
       }
     } catch (supabaseError) {
-      console.warn('Supabase failed, falling back to localStorage:', supabaseError);
+      console.error('❌ Supabase connection failed:', supabaseError);
+      return NextResponse.json({
+        success: false,
+        error: 'Database connection failed',
+        details: supabaseError.message
+      }, { status: 500 });
     }
-
-    // Fallback to localStorage
-    console.log('📱 Saving attendance to localStorage fallback');
-    
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const currentTime = now.toISOString();
-    
-    // Determine status based on time
-    let finalStatus = status;
-    if (status === 'hadir') {
-      const currentTimeStr = now.toTimeString().split(' ')[0];
-      if (currentTimeStr > '07:30:00') {
-        finalStatus = 'terlambat';
-      }
-    }
-
-    const attendanceRecord = {
-      id: `attendance-${Date.now()}`,
-      user_id: user_id,
-      tanggal: today,
-      waktu_masuk: currentTime,
-      status: finalStatus,
-      method: method,
-      confidence_score: meta.confidence || null,
-      notes: meta.notes || null,
-      created_at: currentTime
-    };
-
-    // Save to localStorage (this is a fallback)
-    if (typeof window !== 'undefined') {
-      const existingRecords = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
-      const updatedRecords = [attendanceRecord, ...existingRecords.slice(0, 99)]; // Keep last 100 records
-      localStorage.setItem('attendanceRecords', JSON.stringify(updatedRecords));
-    }
-
-    console.log('📱 Saved attendance to localStorage');
-
-    return NextResponse.json({
-      success: true,
-      message: `Absensi berhasil dicatat sebagai ${finalStatus} (localStorage)`,
-      data: attendanceRecord,
-      source: 'localStorage'
-    });
 
   } catch (error) {
     console.error('❌ Attendance marking error:', error);

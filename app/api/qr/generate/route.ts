@@ -59,24 +59,12 @@ export async function GET(request: NextRequest) {
       });
 
     } catch (supabaseError) {
-      console.warn('Supabase failed, using fallback:', supabaseError);
-      
-      // Fallback: generate QR data without database lookup
-      const qrData = `STUDENT_${studentId}`;
-      
+      console.error('❌ Supabase connection failed:', supabaseError);
       return NextResponse.json({
-        success: true,
-        data: {
-          qrData,
-          student: {
-            id: studentId,
-            nama: 'Unknown Student',
-            nisn: studentId,
-            class_name: 'XII TJKT 2'
-          }
-        },
-        source: 'fallback'
-      });
+        success: false,
+        error: 'Database connection failed',
+        details: supabaseError.message
+      }, { status: 500 });
     }
 
   } catch (error) {
@@ -118,14 +106,12 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (supabaseError) {
-      console.warn('Supabase failed, using fallback:', supabaseError);
-      
+      console.error('❌ Supabase connection failed:', supabaseError);
       return NextResponse.json({
-        success: true,
-        message: 'QR Code generated successfully (offline)',
-        data: { qrData, studentId },
-        source: 'fallback'
-      });
+        success: false,
+        error: 'Database connection failed',
+        details: supabaseError.message
+      }, { status: 500 });
     }
 
   } catch (error) {
