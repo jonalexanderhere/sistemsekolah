@@ -5,7 +5,9 @@
 -- Menghapus semua tabel face recognition
 -- Menambahkan sistem QR code yang lengkap
 
--- Drop existing tables if they exist (in correct order due to foreign keys)
+-- Drop existing tables and views if they exist (in correct order due to foreign keys)
+DROP VIEW IF EXISTS attendance_summary CASCADE;
+DROP VIEW IF EXISTS exam_results_summary CASCADE;
 DROP TABLE IF EXISTS system_logs CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS pengumuman CASCADE;
@@ -385,6 +387,9 @@ CREATE POLICY "Admins can manage announcements" ON pengumuman
 -- =============================================
 -- FUNCTIONS AND TRIGGERS
 -- =============================================
+
+-- Drop existing function if it exists
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
