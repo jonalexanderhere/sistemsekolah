@@ -16,21 +16,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const { data: settings, error } = await supabaseAdmin
-      .from('attendance_settings')
-      .select('*')
-      .eq('is_active', true)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching attendance settings:', error);
-      return NextResponse.json(
-        { error: 'Gagal mengambil pengaturan absensi' },
-        { status: 500 }
-      );
-    }
-
-    // Return default settings if none found
+    // Return default settings since attendance_settings table doesn't exist in V3
     const defaultSettings = {
       id: 'default',
       name: 'Default Schedule',
@@ -43,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: settings || defaultSettings
+      data: defaultSettings
     });
 
   } catch (error) {

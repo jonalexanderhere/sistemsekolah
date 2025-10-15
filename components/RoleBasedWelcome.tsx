@@ -158,6 +158,13 @@ export default function RoleBasedWelcome({ user }: RoleBasedWelcomeProps) {
             color: 'bg-green-100 text-green-600'
           },
           {
+            title: 'Online Exam',
+            description: 'Take online exams',
+            icon: <BookOpen className="h-6 w-6" />,
+            action: () => router.push('/student-exam'),
+            color: 'bg-purple-100 text-purple-600'
+          },
+          {
             title: 'Announcements',
             description: 'View latest announcements',
             icon: <Bell className="h-6 w-6" />,
